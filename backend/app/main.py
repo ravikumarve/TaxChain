@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from alembic.config import Config
+from alembic import command
 from app.config import settings
 from app.database import engine, Base
 from app.routers import auth, wallets, transactions, reports
@@ -16,11 +18,30 @@ app.add_middleware(
 )
 
 
-# Create database tables
+# Run Alembic database migrations
 @app.on_event("startup")
 async def startup_event():
+    # Import all models so Alembic can discover them
+    from app.models import (
+        User,
+        Wallet,
+        Transaction,
+        CostBasisLot,
+        TaxEvent,
+        Subscription,
+    )
+
+    # Configure Alembic
+    alembic_cfg = Config("alembic.ini")
+    alembic_cfg.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+
+    # Run migrations using async engine
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(
+            lambda sync_conn: command.upgrade(
+                alembic_cfg, "head", sqlalchemy_connection=sync_conn
+            )
+        )
 
 
 # Include routers
