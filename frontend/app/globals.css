@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Backgrounds */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8F9FA;
+  --bg-sidebar: #0F172A;
+  --bg-card: #FFFFFF;
+
+  /* Text */
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  --text-sidebar: #E2E8F0;
+
+  /* Brand */
+  --brand: #6366F1;
+  --brand-light: #EEF2FF;
+
+  /* Financial */
+  --gain: #10B981;
+  --gain-bg: #ECFDF5;
+  --loss: #EF4444;
+  --loss-bg: #FEF2F2;
+  --neutral: #64748B;
+
+  /* Chains */
+  --eth: #627EEA;
+  --bnb: #F3BA2F;
+  --polygon: #8247E5;
+  --sol: #9945FF;
+
+  /* Borders */
+  --border: #E2E8F0;
+  --border-strong: #CBD5E1;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.text-display {
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.text-heading {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.text-subhead {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.text-body {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.text-small {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.text-mono {
+  font-family: var(--font-data);
+  font-size: 13px;
+}

@@ -1,0 +1,34 @@
+import type { Metadata } from 'next'
+import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
+import './globals.css'
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-ui',
+  display: 'swap',
+})
+
+const jetbrains = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-data',
+  display: 'swap',
+})
+
+export const metadata: Metadata = {
+  title: 'TaxChain - Crypto Tax & Portfolio P&L',
+  description: 'Multi-wallet, multi-chain crypto tax calculations and portfolio tracking',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en" className={`${jakarta.variable} ${jetbrains.variable}`}>
+      <body className="font-ui">
+        {children}
+      </body>
+    </html>
+  )
+}
