@@ -1,17 +1,14 @@
-from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, DateTime, Integer, func
 from sqlalchemy.orm import relationship
 from app.database import Base
-import uuid
+from app.utils.database_utils import uuid_column, uuid_foreign_key
 
 
 class Wallet(Base):
     __tablename__ = "wallets"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
+    id = uuid_column()
+    user_id = uuid_foreign_key("users.id")
     address = Column(String(255), nullable=False)
     chain = Column(String(20), nullable=False)  # eth | bnb | polygon | sol
     label = Column(String(100))

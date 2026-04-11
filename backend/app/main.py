@@ -1,12 +1,33 @@
-from fastapi import FastAPI
+import logging
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
 from alembic.config import Config
 from alembic import command
 from app.config import settings
 from app.database import engine, Base
 from app.routers import auth, wallets, transactions, reports
+from app.utils.error_handler import ErrorResponse, handle_general_error
+import traceback
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("logs/taxchain.log"), logging.StreamHandler()],
+)
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="TaxChain API", version="1.0.0")
+
+# Rate limiting
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
 
 # CORS middleware
 app.add_middleware(
@@ -18,10 +39,10 @@ app.add_middleware(
 )
 
 
-# Run Alembic database migrations
+# Startup event - tables are already created
 @app.on_event("startup")
 async def startup_event():
-    # Import all models so Alembic can discover them
+    # Import all models to ensure they're loaded
     from app.models import (
         User,
         Wallet,
@@ -31,17 +52,17 @@ async def startup_event():
         Subscription,
     )
 
-    # Configure Alembic
-    alembic_cfg = Config("alembic.ini")
-    alembic_cfg.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+    logger.info("TaxChain API started successfully")
 
-    # Run migrations using async engine
-    async with engine.begin() as conn:
-        await conn.run_sync(
-            lambda sync_conn: command.upgrade(
-                alembic_cfg, "head", sqlalchemy_connection=sync_conn
-            )
-        )
+
+# Global exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Handle all uncaught exceptions globally."""
+    error_response = handle_general_error(exc, "global_exception_handler")
+    return JSONResponse(
+        status_code=error_response.status_code, content=error_response.detail
+    )
 
 
 # Include routers

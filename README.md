@@ -9,7 +9,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
 ![Python](https://img.shields.io/badge/python-3.11+-blue?style=for-the-badge&logo=python)
 ![Next.js](https://img.shields.io/badge/Next.js-14.0+-black?style=for-the-badge&logo=next.js)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12+-blue?style=for-the-badge&logo=postgresql)
+![Database](https://img.shields.io/badge/Database-SQLite/PostgreSQL-blue?style=for-the-badge&logo=postgresql)
 ![Status](https://img.shields.io/badge/status-Phase_1:_Core_Engine_Completed-brightgreen?style=for-the-badge)
 
 **Automated Crypto Tax Calculations • Multi-Chain Support • Professional Tax Reports**
@@ -41,17 +41,18 @@ TaxChain is a **production-grade crypto tax and portfolio P&L SaaS** that helps 
 | Phase | Status | Progress | Key Milestones |
 |-------|--------|----------|----------------|
 | **Phase 1: Core Engine** | ✅ **Completed** | 100% | Database schema, ORM models, testing infrastructure |
-| **Phase 2: Backend API** | ✅ **Completed** | 100% | Auth services, wallet endpoints, tax engine, report generation |
+| **Phase 2: Backend API** | ✅ **Completed** | 100% | Auth services, SQLite support, database utilities, API endpoints |
 | **Phase 3: Frontend** | 🔄 **In Progress** | 20% | Dashboard, charts, transaction tables |
 | **Phase 4: Integrations** | 📋 **Upcoming** | 0% | Chain APIs, payment systems, reports |
 | **Phase 5: Launch** | 📋 **Upcoming** | 0% | Deployment, testing, production launch |
 
 ### ✅ Completed Features
 
-- **Database & Models**: PostgreSQL schema with Alembic migrations, complete ORM models
+- **Database & Models**: SQLite/PostgreSQL support with complete ORM models
+- **Database Utilities**: Cross-platform UUID/JSONB handling for SQLite compatibility
+- **Authentication System**: Full JWT auth with email validation and refresh tokens
 - **Financial Precision**: Decimal handling (36,18 crypto / 20,8 USD), async operations
-- **Testing Suite**: 15+ test cases covering unit, integration, and concurrent testing
-- **Backend Foundation**: FastAPI structure, CORS, migration automation
+- **Backend Foundation**: FastAPI structure, CORS, error handling
 
 ### ✅ Completed
 - **Authentication Service**: Full JWT auth with refresh tokens, password hashing
@@ -86,7 +87,7 @@ TaxChain is a **production-grade crypto tax and portfolio P&L SaaS** that helps 
 | Component | Technology | Status |
 |-----------|------------|--------|
 | **Framework** | FastAPI (Python) | ✅ Running |
-| **Database** | PostgreSQL | ✅ Schema Migrated |
+| **Database** | SQLite/PostgreSQL | ✅ Both Supported |
 | **ORM** | SQLAlchemy + Alembic | ✅ Models Implemented |
 | **Authentication** | JWT + bcrypt | ✅ Complete |
 | **Background Jobs** | APScheduler | 📋 Upcoming |
@@ -198,14 +199,15 @@ git clone https://github.com/yourusername/taxchain.git
 cd taxchain
 
 # 2. Install dependencies
-pip install -r backend/requirements.txt
+cd backend
+pip install -r requirements.txt
 
 # 3. Configure environment
-cp backend/.env.example backend/.env
-# Edit backend/.env with your database and API keys
+cp .env.example .env
+# Edit .env with your settings (SQLite configured by default)
 
-# 4. Run migrations
-alembic upgrade head
+# 4. Create database tables
+python create_tables.py
 
 # 5. Start development server
 uvicorn app.main:app --reload
@@ -234,6 +236,9 @@ docker-compose up -d
 
 # Run migrations against Docker database
 alembic upgrade head
+
+# Or use SQLite for development (no Docker needed)
+python create_tables.py
 ```
 
 ## 📁 Project Structure

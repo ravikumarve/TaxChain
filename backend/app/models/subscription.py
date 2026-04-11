@@ -1,17 +1,14 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, DateTime, func
 from sqlalchemy.orm import relationship
 from app.database import Base
-import uuid
+from app.utils.database_utils import uuid_column, uuid_foreign_key
 
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
+    id = uuid_column()
+    user_id = uuid_foreign_key("users.id")
     provider = Column(String(20), nullable=False)  # razorpay | lemonsqueezy
     provider_sub_id = Column(String(255))
     plan = Column(String(20), nullable=False)

@@ -1,21 +1,16 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey, func, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Column, String, DateTime, func, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy import DECIMAL
 from app.database import Base
-import uuid
+from app.utils.database_utils import uuid_column, uuid_foreign_key, jsonb_column
 
 
 class Transaction(Base):
     __tablename__ = "transactions"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    wallet_id = Column(
-        UUID(as_uuid=True), ForeignKey("wallets.id", ondelete="CASCADE"), nullable=False
-    )
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
+    id = uuid_column()
+    wallet_id = uuid_foreign_key("wallets.id")
+    user_id = uuid_foreign_key("users.id")
     tx_hash = Column(String(255), nullable=False)
     chain = Column(String(20), nullable=False)
     tx_type = Column(
@@ -28,7 +23,7 @@ class Transaction(Base):
     value_usd = Column(DECIMAL(20, 8))
     fee_usd = Column(DECIMAL(20, 8))
     timestamp = Column(DateTime, nullable=False)
-    raw_data = Column(JSONB)
+    raw_data = jsonb_column()
     created_at = Column(DateTime, default=func.now())
 
     # Relationships

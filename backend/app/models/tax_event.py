@@ -1,25 +1,22 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy import DECIMAL
 from app.database import Base
-import uuid
+from app.utils.database_utils import uuid_column, uuid_foreign_key
 
 
 class TaxEvent(Base):
     __tablename__ = "tax_events"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
+    id = uuid_column()
+    user_id = uuid_foreign_key("users.id")
     token_symbol = Column(String(50), nullable=False)
     quantity = Column(DECIMAL(36, 18), nullable=False)
     proceeds_usd = Column(DECIMAL(20, 8), nullable=False)
     cost_basis_usd = Column(DECIMAL(20, 8), nullable=False)
     gain_loss_usd = Column(DECIMAL(20, 8), nullable=False)
     is_short_term = Column(Boolean)
-    sale_tx_id = Column(UUID(as_uuid=True), ForeignKey("transactions.id"))
+    sale_tx_id = uuid_foreign_key("transactions.id")
     acquired_at = Column(DateTime)
     disposed_at = Column(DateTime, nullable=False)
     financial_year = Column(String(10))
