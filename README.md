@@ -41,8 +41,8 @@ TaxChain is a **production-grade crypto tax and portfolio P&L SaaS** that helps 
 | Phase | Status | Progress | Key Milestones |
 |-------|--------|----------|----------------|
 | **Phase 1: Core Engine** | ✅ **Completed** | 100% | Database schema, ORM models, testing infrastructure |
-| **Phase 2: Backend API** | 🔄 **In Progress** | 40% | Auth services, wallet endpoints, tax engine |
-| **Phase 3: Frontend** | 📋 **Upcoming** | 0% | Dashboard, charts, transaction tables |
+| **Phase 2: Backend API** | ✅ **Completed** | 100% | Auth services, wallet endpoints, tax engine, report generation |
+| **Phase 3: Frontend** | 🔄 **In Progress** | 20% | Dashboard, charts, transaction tables |
 | **Phase 4: Integrations** | 📋 **Upcoming** | 0% | Chain APIs, payment systems, reports |
 | **Phase 5: Launch** | 📋 **Upcoming** | 0% | Deployment, testing, production launch |
 
@@ -53,17 +53,18 @@ TaxChain is a **production-grade crypto tax and portfolio P&L SaaS** that helps 
 - **Testing Suite**: 15+ test cases covering unit, integration, and concurrent testing
 - **Backend Foundation**: FastAPI structure, CORS, migration automation
 
-### 🔄 In Progress
-- Authentication service implementation
-- Wallet management endpoints  
-- Transaction sync framework
-- FIFO tax calculation engine
+### ✅ Completed
+- **Authentication Service**: Full JWT auth with refresh tokens, password hashing
+- **Wallet Management**: Complete CRUD endpoints with validation
+- **Transaction Framework**: Paginated listing with filtering and aggregation
+- **Tax Calculation Engine**: Complete FIFO implementation with test suite
+- **Report Generation**: CSV, PDF, and ITR Schedule VDA export endpoints
 
-### 📋 Upcoming
+### 🔄 In Progress
 - Frontend dashboard components
 - Chain API integrations (Etherscan, CoinGecko)
 - Payment systems (Razorpay, Lemon Squeezy)
-- Report generation services
+- Frontend integration with backend APIs
 
 ## 🌟 Key Features
 
@@ -87,26 +88,26 @@ TaxChain is a **production-grade crypto tax and portfolio P&L SaaS** that helps 
 | **Framework** | FastAPI (Python) | ✅ Running |
 | **Database** | PostgreSQL | ✅ Schema Migrated |
 | **ORM** | SQLAlchemy + Alembic | ✅ Models Implemented |
-| **Authentication** | JWT + bcrypt | ✅ Service Started |
-| **Background Jobs** | APScheduler | ✅ Structure Ready |
-| **Async Support** | Async/Await | ✅ Implemented |
+| **Authentication** | JWT + bcrypt | ✅ Complete |
+| **Background Jobs** | APScheduler | 📋 Upcoming |
+| **Async Support** | Async/Await | ✅ Complete |
 
-### 🟡 Frontend (In Progress)
+### 🟡 Frontend (In Progress - 20% Complete)
 
 | Component | Technology | Status |
 |-----------|------------|--------|
-| **Framework** | Next.js 14+ (App Router) | ✅ App Structure |
-| **UI Components** | shadcn/ui + Tailwind CSS | ✅ Basic Styling |
-| **Charts** | Recharts | 🚧 Planned |
-| **Tables** | TanStack Table | 🚧 Planned |
-| **State Management** | Zustand + React Query | 🚧 Planned |
+| **Framework** | Next.js 14+ (App Router) | 🔄 Basic Structure |
+| **UI Components** | shadcn/ui + Tailwind CSS | 🔄 Basic Components |
+| **Charts** | Recharts | 📋 Planned |
+| **Tables** | TanStack Table | 📋 Planned |
+| **State Management** | Zustand + React Query | 📋 Planned |
 
 ### 🔵 External APIs (Upcoming)
 
 | Service | API Provider | Status |
 |---------|--------------|--------|
-| **Blockchain Data** | Etherscan, BscScan, PolygonScan, Solscan | 📋 Upcoming |
-| **Price Data** | CoinGecko API | 📋 Upcoming |
+| **Blockchain Data** | Etherscan, BscScan, PolygonScan, Solscan | 🔄 In Progress |
+| **Price Data** | CoinGecko API | 🔄 In Progress |
 | **Payments** | Razorpay, Lemon Squeezy | 📋 Upcoming |
 
 ## 📦 Installation
@@ -123,10 +124,10 @@ TaxChain is a **production-grade crypto tax and portfolio P&L SaaS** that helps 
 
 | Test Type | Coverage | Status | Details |
 |-----------|----------|--------|---------|
-| **Unit Tests** | ✅ Complete | 15+ test cases | Model validation, Decimal precision, relationships |
-| **Integration Tests** | ✅ Complete | Database operations | CRUD operations, concurrent transactions |
-| **Financial Precision** | ✅ Complete | Decimal calculations | 18-decimal crypto, 8-decimal USD |
-| **Async Operations** | ✅ Complete | Concurrent handling | Database session management |
+| **Unit Tests** | ✅ Complete | 25+ test cases | Model validation, Decimal precision, relationships, auth, services |
+| **Integration Tests** | ✅ Complete | Database operations | CRUD operations, concurrent transactions, API endpoints |
+| **Financial Precision** | ✅ Complete | Decimal calculations | 18-decimal crypto, 8-decimal USD, FIFO calculations |
+| **Async Operations** | ✅ Complete | Concurrent handling | Database session management, API rate limiting |
 
 ### Running Tests
 
@@ -151,6 +152,10 @@ python -m pytest tests/test_database_integration.py -v
 - ✅ Async database session management  
 - ✅ Concurrent operation handling
 - ✅ Model relationship integrity testing
+- ✅ Authentication service testing
+- ✅ FIFO tax calculation validation
+- ✅ Report generation testing
+- ✅ API endpoint testing with filters
 
 ## 🗄️ Database Architecture
 
@@ -311,34 +316,34 @@ taxchain/
 ### 🔐 Authentication
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
-| `/api/auth/login` | POST | ✅ Structure Ready | User authentication |
-| `/api/auth/register` | POST | ✅ Structure Ready | User registration |
-| `/api/auth/refresh` | POST | 📋 Planned | Token refresh |
+| `/api/auth/login` | POST | ✅ Complete | User authentication with refresh tokens |
+| `/api/auth/register` | POST | ✅ Complete | User registration with validation |
+| `/api/auth/refresh` | POST | ✅ Complete | Token refresh with validation |
 
 ### 💼 Wallets
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
-| `/api/wallets` | GET | ✅ Structure Ready | List user wallets |
-| `/api/wallets` | POST | ✅ Structure Ready | Add new wallet |
-| `/api/wallets/{id}` | DELETE | ✅ Structure Ready | Remove wallet |
-| `/api/wallets/{id}/sync` | POST | ✅ Structure Ready | Trigger wallet sync |
+| `/api/wallets` | GET | ✅ Complete | List user wallets with filtering |
+| `/api/wallets` | POST | ✅ Complete | Add new wallet with validation |
+| `/api/wallets/{id}` | DELETE | ✅ Complete | Remove wallet with cascade delete |
+| `/api/wallets/{id}/sync` | POST | ✅ Complete | Trigger wallet sync |
 
 ### 💰 Transactions
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
-| `/api/transactions` | GET | ✅ Structure Ready | Paginated transaction list |
-| `/api/transactions/summary` | GET | ✅ Structure Ready | Aggregated statistics |
+| `/api/transactions` | GET | ✅ Complete | Paginated transaction list with filtering |
+| `/api/transactions/summary` | GET | ✅ Complete | Aggregated statistics with filters |
 
 ### 📊 Tax & Reports
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
-| `/api/tax/summary` | GET | ✅ Structure Ready | Tax summary by financial year |
-| `/api/tax/events` | GET | 📋 Planned | All tax events (paginated) |
-| `/api/reports/csv` | POST | ✅ Structure Ready | Generate CSV report |
-| `/api/reports/pdf` | POST | ✅ Structure Ready | Generate PDF report |
-| `/api/reports/itr` | POST | ✅ Structure Ready | India ITR Schedule VDA format |
+| `/api/tax/summary` | GET | ✅ Complete | Tax summary by financial year with FIFO calculations |
+| `/api/tax/events` | GET | ✅ Complete | All tax events (paginated) with filtering |
+| `/api/reports/csv` | POST | ✅ Complete | Generate comprehensive CSV tax report |
+| `/api/reports/pdf` | POST | ✅ Complete | Generate professional PDF tax report |
+| `/api/reports/itr` | POST | ✅ Complete | India ITR Schedule VDA format with INR conversion |
 
-**Current Status**: All API router structures are implemented with placeholder endpoints. Business logic implementation is in progress for Phase 2.
+**Current Status**: All API endpoints are fully implemented with complete business logic, validation, and error handling. Phase 2 backend API development is complete.
 
 ## 💰 Pricing & Plans
 
@@ -355,8 +360,10 @@ taxchain/
 |---------|--------|---------|
 | **Dockerized** | ✅ Ready | Container deployment configured |
 | **Environment Variables** | ✅ Configured | Proper .env structure |
-| **Migrations Automated** | ✅ Ready | Alembic migration system |
+| **Migrations Automated** | ✅ Complete | Alembic migration system |
 | **Async Ready** | ✅ Complete | Full async/await support |
+| **API Rate Limiting** | ✅ Complete | Rate limiting middleware implemented |
+| **Error Handling** | ✅ Complete | Comprehensive error handling system |
 
 ### 🟢 Frontend (Vercel)
 | Feature | Status | Details |
@@ -373,6 +380,7 @@ taxchain/
 | **Free Tier Ready** | ✅ Configured | 500MB storage sufficient |
 | **Automatic Backups** | ✅ Supported | Built-in backup system |
 | **Connection Pooling** | ✅ Ready | Connection management configured |
+| **Transaction Safety** | ✅ Complete | ACID compliance with proper error handling |
 
 ## 🤝 Contributing
 
@@ -380,9 +388,9 @@ We welcome contributions from the community! Please see our [Contributing Guidel
 
 ### 🎯 Development Progress
 - **Phase 1: Core Engine** - ✅ **Completed** (Database, models, testing)
-- **Phase 2: Backend API** - 🔄 **In Progress** (Auth, wallet endpoints, tax engine)
-- **Phase 3: Frontend** - 📋 **Upcoming** (Dashboard, charts, tables)
-- **Phase 4: Integrations** - 📋 **Upcoming** (Chain APIs, payments, reports)
+- **Phase 2: Backend API** - ✅ **Completed** (Auth, wallet endpoints, tax engine, reports)
+- **Phase 3: Frontend** - 🔄 **In Progress** (Dashboard, charts, tables)
+- **Phase 4: Integrations** - 📋 **Upcoming** (Chain APIs, payments)
 
 ### 💡 How to Contribute
 
@@ -392,12 +400,14 @@ We welcome contributions from the community! Please see our [Contributing Guidel
 4. **Push** to the branch: `git push origin feature/amazing-feature`
 5. **Open** a Pull Request
 
+**Note**: Current development focus is on Phase 3 (Frontend) - contributions welcome for React components, UI design, and frontend-backend integration.
+
 ### 🎨 Contribution Areas
-- Backend API development
-- Frontend components and UI
-- Blockchain integrations
-- Testing and documentation
-- Performance optimization
+- **Frontend Development**: React components, Next.js App Router, UI/UX design
+- **Blockchain Integrations**: Etherscan, BscScan, CoinGecko API implementations
+- **Testing**: Frontend testing, integration testing, E2E testing
+- **Documentation**: API documentation, user guides, tutorials
+- **Performance Optimization**: Frontend performance, API response times
 
 ## 📄 License
 
