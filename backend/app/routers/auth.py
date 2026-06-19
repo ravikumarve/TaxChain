@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from app.database import get_db
 from app.services.auth_service import (
     authenticate_user,
@@ -15,10 +17,15 @@ from app.schemas.auth import UserRegister, TokenResponse, RefreshTokenRequest
 
 router = APIRouter()
 
+# Brute-force protection: 5 attempts per minute per IP on auth endpoints
+auth_limiter = Limiter(key_func=get_remote_address, default_limits=["5/minute"])
+
 
 @router.post("/register", response_model=TokenResponse)
+@auth_limiter.limit("5/minute")
 async def register_user(
     user_data: UserRegister,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     # Check if user already exists
@@ -62,8 +69,11 @@ async def register_user(
 
 
 @router.post("/login")
+@auth_limiter.limit("5/minute")
 async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)
+    request: Request,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db),
 ):
     user = await authenticate_user(db, form_data.username, form_data.password)
     if not user:
@@ -84,7 +94,10 @@ async def login_for_access_token(
 
 
 @router.post("/refresh")
+@auth_limiter.limit("10/minute")
 async def refresh_token(
-    token_data: RefreshTokenRequest, db: AsyncSession = Depends(get_db)
+    request: Request,
+    token_data: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_db),
 ):
     return await refresh_access_token(db, token_data.refresh_token)

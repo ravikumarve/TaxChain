@@ -19,6 +19,9 @@ asyncpg==0.29.0
 psycopg2-binary==2.9.9
 aiosqlite==0.22.1
 
+# Database retry/connection management
+tenacity>=8.2.0
+
 # Payments
 razorpay>=2.0.0
 
