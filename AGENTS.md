@@ -3,6 +3,77 @@
 # Runtime Constitution for OpenCode + DeepSeek V3.1
 # Sensei: Claude | Builder: Ravi | Stack: Next.js + FastAPI + PostgreSQL
 
+### 2026-04-22 15:45 - Phase 5: Payments & Deployment Completed
+**Agent:** orchestrator
+**Summary:** Completed Phase 5 - Payments, Landing Page & Deployment
+- ✅ Backend payment service with Razorpay & Lemon Squeezy integration
+- ✅ Backend payments router with order creation and subscription management
+- ✅ Backend webhooks router for payment confirmation
+- ✅ Frontend pricing page with Free/Starter/Pro tiers
+- ✅ Frontend payment checkout components (UpgradeModal, PlanBadge)
+- ✅ Marketing landing page with hero, features, pricing, FAQ sections
+- ✅ Plan gates and upgrade prompts integrated in dashboard
+- ✅ Production deployment configurations (Vercel, Render, Supabase)
+- ✅ Comprehensive testing guide and automated test script
+- ✅ Updated requirements.txt with payment dependencies
+
+**Key Features Implemented:**
+- Dual payment provider support (Razorpay for India, Lemon Squeezy for global)
+- Plan-based feature gates with real-time validation
+- Subscription management with automatic plan upgrades
+- Webhook signature verification for security
+- Responsive pricing page with FAQ section
+- Professional landing page with conversion optimization
+- Production-ready deployment configurations
+- End-to-end payment flow testing
+
+**Files Created:**
+- backend/app/services/payment_service.py (comprehensive payment logic)
+- backend/app/routers/payments.py (payment endpoints)
+- backend/app/routers/webhooks.py (webhook handlers)
+- frontend/app/pricing/page.tsx (pricing page)
+- frontend/app/page.tsx (landing page)
+- frontend/components/payments/UpgradeModal.tsx (upgrade modal)
+- frontend/components/payments/PlanBadge.tsx (plan badge component)
+- DEPLOYMENT.md (deployment guide)
+- TESTING.md (testing guide)
+- test_payment_flow.py (automated test script)
+- vercel.json, render.yaml (deployment configs)
+
+**Next Steps:**
+1. Set up Razorpay and Lemon Squeezy accounts
+2. Configure payment provider plans and webhooks
+3. Deploy to production (Vercel + Render + Supabase)
+4. Run end-to-end tests in production environment
+5. Monitor payment flows and optimize conversion
+
+---
+
+### 2026-04-16 14:30 - Phase 4: Tax & Export Completed
+**Agent:** orchestrator
+**Summary:** Completed Phase 4 - Tax & Export functionality
+- ✅ Backend reports router fully functional with CSV, PDF, and ITR exports
+- ✅ PDF report generation using ReportLab with professional formatting
+- ✅ India ITR Schedule VDA export format (Pro-only feature)
+- ✅ Frontend tax summary page with financial year selector
+- ✅ Frontend reports page with export functionality and plan gates
+- ✅ Created wallets and transactions pages for complete navigation
+- ✅ Updated dashboard layout with proper navigation links
+- ✅ Added missing dependencies (aiosqlite, slowapi) to requirements.txt
+- ✅ All export functionality tested and verified
+
+**Key Features Implemented:**
+- Tax summary with total gain/loss, short-term/long-term breakdown
+- Token-level breakdown with transaction counts
+- CSV export with comprehensive transaction data
+- PDF export with professional formatting and methodology explanation
+- ITR Schedule VDA export for Indian tax filing (Pro only)
+- Plan-based feature gates (Free/Starter/Pro)
+- Financial year selector with 5-year history
+- Responsive design with proper error handling
+
+---
+
 ### 2026-04-12 02:30 - Wallet Management System Completed
 **Agent:** orchestrator
 **Summary:** Completed Phase 3 frontend wallet management implementation

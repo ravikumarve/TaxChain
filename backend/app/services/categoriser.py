@@ -215,7 +215,7 @@ class TransactionCategorizer:
 
         except Exception as e:
             # Log error but don't fail
-            print(f"Categorization error for chain {chain}: {e}")
+            logger.warning("Categorization error for chain %s: %s", chain, e)
             return "transfer_in"  # Safe fallback
 
     @staticmethod

@@ -26,21 +26,6 @@ from app.utils.error_handler import (
 )
 from app.utils.validators import sanitize_string, validate_csv_content
 from app.middleware.rate_limit import reports_rate_limit
-from sqlalchemy.exc import SQLAlchemyError
-import logging
-
-logger = logging.getLogger(__name__)
-from app.utils.error_handler import (
-    handle_database_error,
-    handle_external_api_error,
-    handle_permission_error,
-    handle_not_found_error,
-    handle_general_error,
-    log_request_info,
-    validate_financial_year_format,
-)
-from app.utils.validators import validate_csv_content
-from app.middleware.rate_limit import reports_rate_limit
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

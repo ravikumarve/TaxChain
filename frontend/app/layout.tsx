@@ -26,6 +26,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${jakarta.variable} ${jetbrains.variable}`}>
+      <head>
+        <script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          async
+        ></script>
+      </head>
       <body className="font-ui">
         {children}
       </body>

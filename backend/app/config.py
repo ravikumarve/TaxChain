@@ -18,7 +18,12 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     FRONTEND_URL: str = "http://localhost:3000"
     CORS_ORIGINS: str = "http://localhost:3000"
+    TRUSTED_HOSTS: str = "localhost,127.0.0.1,0.0.0.0"
     DEBUG: bool = False
+    LOG_LEVEL: str = "INFO"
+
+    # Observability
+    SENTRY_DSN: str = ""
 
     # Chain API keys (optional at dev, required in prod)
     ETHERSCAN_API_KEY: str = ""

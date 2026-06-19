@@ -3,6 +3,7 @@ CoinGecko Price Engine Service
 Provides historical price lookups for crypto tokens with caching.
 """
 
+import logging
 import httpx
 import asyncio
 from datetime import datetime
@@ -12,6 +13,8 @@ from decimal import Decimal
 
 from app.config import settings
 from app.utils.cache import async_lru_cache
+
+logger = logging.getLogger(__name__)
 
 # CoinGecko token ID mapping (uppercase symbols)
 COINGECKO_IDS = {
@@ -113,7 +116,11 @@ async def get_historical_price(
 
     coin_id = COINGECKO_IDS.get(token_symbol_upper)
     if not coin_id:
-        # Unknown token - return 0 and flag for user review
+        logger.warning(
+            "Unknown token symbol: %s — returning $0.00. "
+            "Flag for user manual price input.",
+            token_symbol,
+        )
         return Decimal("0")
 
     date_str = date.strftime("%d-%m-%Y")  # CoinGecko format
@@ -150,7 +157,9 @@ async def get_historical_price(
             price_usd = current_price.get("usd")
 
             if price_usd is None:
-                # Price not available for this date
+                logger.warning(
+                    "No price data for %s on %s", token_symbol, date_str
+                )
                 return Decimal("0")
 
             # Add small delay to respect rate limits
@@ -187,7 +196,10 @@ async def get_current_price(
 
     coin_id = COINGECKO_IDS.get(token_symbol_upper)
     if not coin_id:
-        # Unknown token - return 0 and flag for user review
+        logger.warning(
+            "Unknown token symbol (current price): %s — returning $0.00",
+            token_symbol,
+        )
         return Decimal("0")
 
     # Use free API by default, Pro API if key provided
@@ -219,6 +231,9 @@ async def get_current_price(
             price_usd = price_data.get("usd")
 
             if price_usd is None:
+                logger.warning(
+                    "No current price for %s", token_symbol
+                )
                 return Decimal("0")
 
             # Add small delay to respect rate limits

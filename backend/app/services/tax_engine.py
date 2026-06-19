@@ -8,12 +8,80 @@ Rules:
 - Short-term: held < 365 days
 """
 
+import logging
 from decimal import Decimal
 from datetime import datetime, timedelta
 from collections import deque
-from typing import List, Deque, Dict, Any
+from typing import List, Deque, Dict, Any, Optional
 from app.models.transaction import Transaction
 from app.models.tax_event import TaxEvent
+from app.models.cost_basis_lot import CostBasisLot
+
+logger = logging.getLogger(__name__)
+
+
+async def load_lots_from_db(db, user_id: str, token_symbol: str) -> Deque[Dict[str, Any]]:
+    """
+    Load existing cost basis lots from the database for a given user+token.
+    
+    Returns a deque of lots ready for the FIFO calculator.
+    """
+    from sqlalchemy.future import select
+
+    result = await db.execute(
+        select(CostBasisLot)
+        .where(
+            CostBasisLot.user_id == user_id,
+            CostBasisLot.token_symbol == token_symbol,
+            CostBasisLot.quantity_remaining > Decimal("0"),
+        )
+        .order_by(CostBasisLot.acquired_at)
+    )
+    lots = result.scalars().all()
+
+    return deque(
+        {
+            "quantity": lot.quantity_remaining,
+            "cost_per_unit": lot.cost_per_unit_usd,
+            "acquired_at": lot.acquired_at,
+            "db_id": lot.id,  # Track DB ID for updates
+        }
+        for lot in lots
+    )
+
+
+async def persist_lots_to_db(
+    db, user_id: str, token_symbol: str, chain: str,
+    calculator: "FIFOTaxCalculator",
+) -> None:
+    """
+    Persist remaining lots from the FIFO calculator to the database.
+    Replaces all existing lots for this user+token with current state.
+    """
+    from sqlalchemy import delete
+
+    # Remove old lots
+    await db.execute(
+        delete(CostBasisLot).where(
+            CostBasisLot.user_id == user_id,
+            CostBasisLot.token_symbol == token_symbol,
+        )
+    )
+
+    # Save current lots
+    for lot in calculator.lots:
+        db_lot = CostBasisLot(
+            user_id=user_id,
+            token_symbol=token_symbol,
+            chain=chain,
+            quantity_remaining=lot["quantity"],
+            cost_per_unit_usd=lot["cost_per_unit"],
+            acquired_at=lot["acquired_at"],
+            source_tx_id=lot.get("source_tx_id"),
+        )
+        db.add(db_lot)
+
+    await db.commit()
 
 
 class FIFOTaxCalculator:
@@ -152,7 +220,7 @@ def calculate_fifo(
 
         except (ValueError, TypeError) as e:
             # Skip invalid transactions but log the error
-            print(f"Warning: Skipping transaction {tx.tx_hash}: {e}")
+            logger.warning("Skipping transaction %s: %s", tx.tx_hash, e)
             continue
 
     return tax_events
