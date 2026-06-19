@@ -51,12 +51,12 @@ export default function TaxTerminal() {
       </div>
       <div className="font-mono space-y-2">
         {logLines.map((line, i) => (
-          <div key={i} className="flex items-start gap-2 text-[11px] leading-5">
+          <div key={i} className="flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] leading-5">
             <span className="text-faint shrink-0 w-14 hidden sm:inline">{line.time}</span>
-            <span className={`shrink-0 w-12 tracking-wider uppercase ${levelColors[line.level] || 'text-muted'}`}>
+            <span className={`tracking-wider uppercase whitespace-nowrap shrink-0 ${levelColors[line.level] || 'text-muted'}`}>
               [{line.level}]
             </span>
-            <span className="text-main/80 break-words min-w-0">{line.msg}</span>
+            <span className="text-main/80 break-words min-w-0 leading-snug">{line.msg}</span>
           </div>
         ))}
         <div className="flex items-center gap-2 text-[11px] text-emerald mt-3 pt-3 border-t border-border-dim">
