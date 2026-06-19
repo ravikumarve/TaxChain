@@ -11,8 +11,11 @@ Classifies blockchain transactions into types:
 - fee: Network gas fees
 """
 
+import logging
 from typing import Dict, Any
 from decimal import Decimal
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionCategorizer:

@@ -30,7 +30,7 @@ def test_address_validation():
 
 def test_chain_validation():
     """Test chain validation"""
-    from app.routers.wallets import VALID_CHAINS
+    from app.constants import ALL_CHAINS as VALID_CHAINS
 
     assert "eth" in VALID_CHAINS
     assert "bnb" in VALID_CHAINS

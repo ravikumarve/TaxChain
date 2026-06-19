@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
+import LandingBackground from '@/components/landing/LandingBackground'
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -32,7 +33,8 @@ export default function RootLayout({
           async
         ></script>
       </head>
-      <body className="font-ui">
+      <body className="font-ui bg-void text-main">
+        <LandingBackground />
         {children}
       </body>
     </html>

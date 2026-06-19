@@ -10,10 +10,9 @@ from dotenv import load_dotenv
 load_dotenv("../.env.test", override=True)
 
 # Set test database URL if not already set
-if "TEST_DATABASE_URL" not in os.environ:
-    os.environ["DATABASE_URL"] = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/taxchain_test"
-    )
+# Use SQLite by default (no PostgreSQL needed for unit tests)
+if "TEST_DATABASE_URL" not in os.environ and "DATABASE_URL" not in os.environ:
+    os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test_taxchain.db"
 
 
 @pytest.fixture(scope="session")

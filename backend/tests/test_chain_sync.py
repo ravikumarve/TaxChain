@@ -13,8 +13,9 @@ from app.services.chain_sync import (
     transform_transaction,
     validate_address,
     ChainSyncError,
-    CHAIN_CONFIGS,
+    EVM_CHAIN_CONFIGS,
 )
+from app.constants import ALL_CHAINS
 from app.config import settings
 
 
@@ -206,14 +207,14 @@ class TestChainSync:
         """Test that chain configs have all required keys."""
         required_keys = {"base_url", "api_key", "rate_limit_delay"}
 
-        for chain, config in CHAIN_CONFIGS.items():
+        for chain, config in EVM_CHAIN_CONFIGS.items():
             assert set(config.keys()) == required_keys, (
                 f"Missing keys in {chain} config"
             )
 
     def test_rate_limit_delays_are_positive(self):
         """Test that rate limit delays are positive values."""
-        for chain, config in CHAIN_CONFIGS.items():
+        for chain, config in EVM_CHAIN_CONFIGS.items():
             assert config["rate_limit_delay"] > 0, f"Invalid rate limit for {chain}"
 
 

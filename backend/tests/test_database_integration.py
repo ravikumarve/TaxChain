@@ -3,6 +3,7 @@ Database integration tests for TaxChain backend.
 
 Tests database connection, model operations, Decimal handling,
 relationships, and async session functionality.
+Requires PostgreSQL — skipped automatically if not available.
 """
 
 import asyncio
@@ -11,8 +12,22 @@ from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from uuid import UUID
+from sqlalchemy import text as sa_text
 
 from app.database import get_db, Base, engine
+
+
+def is_postgres_available():
+    """Quick check: can we connect as postgres?"""
+    import os
+    url = os.environ.get("DATABASE_URL", "sqlite+aiosqlite:///./test_taxchain.db")
+    return url and url.startswith("postgresql")
+
+
+pytestmark = pytest.mark.skipif(
+    not is_postgres_available(),
+    reason="PostgreSQL not available (tests use SQLite by default)"
+)
 from app.models.user import User
 from app.models.wallet import Wallet
 from app.models.transaction import Transaction

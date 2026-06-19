@@ -3,6 +3,7 @@ Rate limiting middleware.
 """
 
 import time
+from functools import wraps
 from fastapi import Request, HTTPException
 
 _rate_limit_store = {}
@@ -38,12 +39,15 @@ def check_rate_limit(request, endpoint):
 
 def rate_limit_middleware(endpoint):
     def decorator(func):
-        async def wrapper(request: Request, *args, **kwargs):
-            if not check_rate_limit(request, endpoint):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            # Find the Request object in args/kwargs (FastAPI injects it)
+            request = next((a for a in args if isinstance(a, Request)), None) or kwargs.get("request")
+            if request and not check_rate_limit(request, endpoint):
                 raise HTTPException(
                     status_code=429, detail="Too many requests. Please try again later."
                 )
-            return await func(request, *args, **kwargs)
+            return await func(*args, **kwargs)
 
         return wrapper
 

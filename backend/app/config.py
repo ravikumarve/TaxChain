@@ -1,7 +1,7 @@
 import logging
 import os
 from pydantic_settings import BaseSettings
-from pydantic import validator, Field
+from pydantic import field_validator, Field
 from functools import lru_cache
 
 logger = logging.getLogger(__name__)
@@ -48,10 +48,10 @@ class Settings(BaseSettings):
     LEMONSQUEEZY_VARIANT_PRO: str = "variant_pro_monthly"
     LEMONSQUEEZY_STORE_ID: str = "1"
 
-    class Config:
-        env_file = ".env"
+    model_config = {"env_file": ".env"}
 
-    @validator("SECRET_KEY")
+    @field_validator("SECRET_KEY")
+    @classmethod
     def validate_secret_key(cls, v):
         if len(v) < 32:
             raise ValueError(
@@ -59,7 +59,8 @@ class Settings(BaseSettings):
             )
         return v
 
-    @validator("DATABASE_URL")
+    @field_validator("DATABASE_URL")
+    @classmethod
     def validate_database_url(cls, v):
         if not v.startswith(("postgresql", "sqlite")):
             raise ValueError(

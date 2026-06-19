@@ -3,6 +3,61 @@
 # Runtime Constitution for OpenCode + DeepSeek V3.1
 # Sensei: Claude | Builder: Ravi | Stack: Next.js + FastAPI + PostgreSQL
 
+### 2026-06-20 01:30 - Phase 1 Foundation Complete (Dark Void Theme + Canvas)
+**Agent:** orchestrator
+**State:** Success
+**Summary:** Phase 1 of frontend redesign complete. Dark void theme, canvas background, all 12 pages building.
+
+**Phase 1 — Foundation Deliverables:**
+- `tailwind.config.js` — added dark void tokens (void, surface, panel, glass, text-main, text-muted, text-faint, chains[arbitrum, optimism, base, btc], background gradients)
+- `globals.css` — replaced light `:root` with dark void palette; added `.glass-pane`, `.bento-node`, `.btn`, `.btn-primary`, `.btn-outline`, `.chain-badge`, `.price-card`, `.mono-badge`, `.text-gradient` CSS classes; dot-matrix background layer; ambient core glow
+- `components/landing/LedgerCanvas.tsx` — Canvas2D isometric data stream animation (cylindrical tunnel with connected nodes, mouse parallax, screen blend mode, responsive node count for mobile)
+- `components/landing/DotMatrix.tsx` — CSS radial-gradient dot grid with vignette mask (zero-cost rendering)
+- `components/landing/AmbientCore.tsx` — CSS radial-gradient indigo glow behind hero
+- `components/landing/LandingBackground.tsx` — composer wrapper (canvas + glow + dots, all pointer-events-none)
+- `app/layout.tsx` — wired `LandingBackground` into root layout, added `bg-void text-main` body classes
+
+**Frontend Build Fixes (pre-existing issues resolved):**
+- Created missing `components/payments/PlanBadge.tsx` (was imported by dashboard layout but file didn't exist)
+- Fixed `app/dashboard/wallets/page.tsx` named→default imports (`{ AddWalletModal }` → `AddWalletModal`, `{ WalletList }` → `WalletList`); simplified page to use WalletList's internal state management with `refreshTrigger` prop
+
+**Frontend Health:**
+- All 12 routes build successfully (9 static, 3 generated)
+- First Load JS: 87.3 kB shared (53.6 kB vendor chunk)
+- Canvas2D: 375 nodes (15×25) at full res, ~120 on mobile (8×12)
+
+**Next Turn Directive:**
+- Begin Phase 2 — Landing Sections: rebuild page.tsx section-by-section starting with Navbar + Hero
+- Or proceed to Phase 3 — Dashboard Darkening
+
+---
+
+### 2026-06-19 18:30 - Full Test Suite Green + Frontend Redesign Blueprint
+**Agent:** orchestrator
+**State:** Success
+**Summary:** All 143 backend tests passing (8 skipped: PostgreSQL integration). Frontend redesign blueprint saved.
+
+**Test Fixes Completed (30 failures → 0):**
+- All router test files rewritten with `mock_db.execute.return_value = MagicMock()` pattern (breaking AsyncMock→coroutine chain)
+- Added `raise_server_exceptions=False` to all TestClient instances
+- Fixed `@reports_rate_limit` decorator: added `@wraps(func)` and flexible Request extraction from args/kwargs
+- Added `auth_limiter.enabled = False` in auth tests
+- Fixed `authenticate_user` patch target: `app.routers.auth.*` (not `app.services.auth_service.*`) because `from ... import` creates local references
+- Fixed `test_database_integration.py`: skip if not PostgreSQL (marked with `pytest.mark.skipif`)
+- Fixed `test_chain_sync_async.py`: added `import httpx`
+- Fixed `get_financial_year_range` fencepost: end_date now returns exclusive upper bound (next FY start) matching `<` query operator
+- Added `functools.wraps` to `rate_limit_middleware` decorator for FastAPI signature inspection compatibility
+
+**Artifacts Created:**
+- `FRONTEND_REDESIGN_BLUEPRINT.md` — comprehensive 8-section analysis of TaxChain.html → Next.js port
+
+**Backend Health:**
+- 143 tests passing, 8 skipped (postgres), 0 failures
+- 31 API routes across 6 routers (auth, wallets, transactions, reports, payments, webhooks)
+- 8 chains, 8 currencies, 6 tax formats, 3 plan tiers
+
+---
+
 ### 2026-06-19 14:00 - Tier 3: Global Expansion Completed
 **Agent:** orchestrator
 **Summary:** Completed Tier 3 — Global Expansion (8 chains, multi-currency, global tax formats)

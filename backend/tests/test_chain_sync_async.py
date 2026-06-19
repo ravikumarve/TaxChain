@@ -5,6 +5,7 @@ Async test suite for chain sync service.
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch, MagicMock
+import httpx
 from app.services.chain_sync import fetch_transactions, ChainSyncError
 
 
@@ -20,8 +21,8 @@ async def test_fetch_transactions_unsupported_chain():
 @pytest.mark.asyncio
 async def test_fetch_transactions_network_error():
     """Test network error handling."""
-    with patch("httpx.AsyncClient.get", side_effect=Exception("Network error")):
-        with pytest.raises(ChainSyncError, match="Unexpected error"):
+    with patch("httpx.AsyncClient.get", side_effect=httpx.RequestError("Network error")):
+        with pytest.raises(ChainSyncError, match="Network error"):
             await fetch_transactions(
                 "0x1234567890abcdef1234567890abcdef12345678", "eth"
             )

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
 import bcrypt
@@ -11,6 +11,11 @@ from app.models.user import User
 from app.database import get_db
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+
+
+def _utcnow() -> datetime:
+    """Timezone-aware datetime.utcnow replacement."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -45,9 +50,9 @@ async def authenticate_user(
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = _utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(
+        expire = _utcnow() + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
@@ -60,7 +65,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 def create_refresh_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=7)  # Refresh tokens valid for 7 days
+    expire = _utcnow() + timedelta(days=7)  # Refresh tokens valid for 7 days
     to_encode.update({"exp": expire, "type": "refresh"})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 

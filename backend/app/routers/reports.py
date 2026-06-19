@@ -55,11 +55,9 @@ def get_financial_year_range(
                 status_code=400,
                 detail="Invalid financial year start date format. Use format 'MM-DD' (e.g., '04-01')",
             )
-        # Calculate date range
+        # Calculate date range (end_date is exclusive upper bound)
         start_date = datetime(start_year, month, day)
-        end_date = datetime(start_year + 1, month, day) - timedelta(
-            days=1
-        )  # End of day before next FY start
+        end_date = datetime(start_year + 1, month, day)
         return start_date, end_date
     except (ValueError, IndexError) as e:
         logger.error(f"Financial year parsing error: {str(e)}", exc_info=True)
