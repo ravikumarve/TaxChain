@@ -33,6 +33,21 @@ class TransactionCategorizer:
             "quickswap": "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff",
             "sushiswap": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
         },
+        "arbitrum": {
+            "uniswap_v3": "0xe592427a0aece92de3edee1f18e0157c05861564",
+            "camelot": "0xc873fEcbd354f5A56E00E710B90EF4201db2448d",
+            "sushiswap": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
+        },
+        "optimism": {
+            "uniswap_v3": "0xe592427a0aece92de3edee1f18e0157c05861564",
+            "velodrome": "0x9c12939390052919aF3155f41Bf4160Fd3666A6f",
+            "sushiswap": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
+        },
+        "base": {
+            "uniswap_v3": "0xe592427a0aece92de3edee1f18e0157c05861564",
+            "aerodrome": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+            "sushiswap": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
+        },
     }
 
     # Staking contract patterns
@@ -202,7 +217,9 @@ class TransactionCategorizer:
             return "transfer_in"  # Default fallback
 
         try:
-            if chain == "eth":
+            # EVM L2s (arbitrum, optimism, base) share Ethereum's DEX routers
+            evm_l2_chains = {"arbitrum", "optimism", "base"}
+            if chain == "eth" or chain in evm_l2_chains:
                 return TransactionCategorizer.categorize_ethereum_transaction(tx_data)
             elif chain == "bnb":
                 return TransactionCategorizer.categorize_bsc_transaction(tx_data)

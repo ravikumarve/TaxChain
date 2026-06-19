@@ -904,21 +904,330 @@ async def generate_itr_report(
 
 
 async def get_usd_to_inr_exchange_rate() -> Decimal:
+    """Get current USD to INR exchange rate via the exchange rate service."""
+    from app.services.exchange_rate import get_usd_rate
+    return await get_usd_rate("INR")
+
+
+# ── Global Tax Format Endpoints ────────────────────────────────────────────
+
+
+@router.post("/irs8949")
+async def generate_irs_form_8949(
+    tax_year: Optional[int] = Query(
+        None, description="Tax year (e.g., 2025 for 2025 tax year)",
+        alias="tax_year",
+    ),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """
-    Get current USD to INR exchange rate.
-    In production, this should fetch from RBI, Forex API, or other reliable source.
-    Returns a default rate for development purposes.
+    Generate IRS Form 8949 format (United States).
+    Reports capital gains and losses for US tax filing.
+    Returns CSV in IRS Form 8949 compatible format.
     """
     try:
-        # TODO: Replace with actual API call to get live exchange rate
-        # Example sources: RBI API, Forex API, CurrencyLayer, etc.
-        # For now, return a reasonable default rate
-        # Example implementation using a free forex API:
-        # async with httpx.AsyncClient() as client:
-        #     response = await client.get("https://api.exchangerate-api.com/v4/latest/USD")
-        #     data = response.json()
-        #     return Decimal(str(data['rates']['INR']))
-        return Decimal("83.50")  # Placeholder rate - replace with live data
-    except Exception:
-        # Fallback to a reasonable default if API call fails
-        return Decimal("83.50")
+        # Default to previous year (taxes filed in current year for prior year)
+        year = tax_year or (datetime.now().year - 1)
+        start_date = datetime(year, 1, 1)
+        end_date = datetime(year + 1, 1, 1)
+
+        # Get all user tax events within the tax year
+        result = await db.execute(
+            select(TaxEvent)
+            .where(TaxEvent.user_id == current_user.id)
+            .where(TaxEvent.disposed_at >= start_date)
+            .where(TaxEvent.disposed_at < end_date)
+            .order_by(TaxEvent.disposed_at)
+        )
+        tax_events = result.scalars().all()
+
+        if not tax_events:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No tax events found for tax year {year}",
+            )
+
+        # Build IRS Form 8949 CSV
+        csv_buffer = io.StringIO()
+        writer = csv.writer(csv_buffer)
+
+        # Header
+        writer.writerow(["IRS Form 8949 — Sales and Other Dispositions of Capital Assets"])
+        writer.writerow([f"Tax Year: {year}"])
+        writer.writerow([])
+
+        # Part I: Short-Term Capital Gains (held ≤ 1 year)
+        writer.writerow(["PART I: Short-Term Capital Gains and Losses"])
+        writer.writerow([
+            "Description", "Date Acquired", "Date Sold",
+            "Proceeds", "Cost Basis", "Gain/Loss",
+            "Holding Period",
+        ])
+        short_term_total = Decimal("0")
+        for event in tax_events:
+            if not event.is_short_term:
+                continue
+            acquired = event.acquired_at.strftime("%Y-%m-%d") if event.acquired_at else "VARIOUS"
+            disposed = event.disposed_at.strftime("%Y-%m-%d")
+            writer.writerow([
+                f"{event.quantity:.8f} {event.token_symbol}",
+                acquired,
+                disposed,
+                f"{event.proceeds_usd:.2f}",
+                f"{event.cost_basis_usd:.2f}",
+                f"{event.gain_loss_usd:.2f}",
+                "Short",
+            ])
+            short_term_total += event.gain_loss_usd
+
+        writer.writerow([])
+        writer.writerow(["Short-Term Total:", "", "", "", "", f"{short_term_total:.2f}", ""])
+        writer.writerow([])
+
+        # Part II: Long-Term Capital Gains (held > 1 year)
+        writer.writerow(["PART II: Long-Term Capital Gains and Losses"])
+        writer.writerow([
+            "Description", "Date Acquired", "Date Sold",
+            "Proceeds", "Cost Basis", "Gain/Loss",
+            "Holding Period",
+        ])
+        long_term_total = Decimal("0")
+        for event in tax_events:
+            if event.is_short_term:
+                continue
+            acquired = event.acquired_at.strftime("%Y-%m-%d") if event.acquired_at else "VARIOUS"
+            disposed = event.disposed_at.strftime("%Y-%m-%d")
+            writer.writerow([
+                f"{event.quantity:.8f} {event.token_symbol}",
+                acquired,
+                disposed,
+                f"{event.proceeds_usd:.2f}",
+                f"{event.cost_basis_usd:.2f}",
+                f"{event.gain_loss_usd:.2f}",
+                "Long",
+            ])
+            long_term_total += event.gain_loss_usd
+
+        writer.writerow([])
+        writer.writerow(["Long-Term Total:", "", "", "", "", f"{long_term_total:.2f}", ""])
+        writer.writerow([])
+
+        # Grand total
+        writer.writerow(["GRAND TOTAL (Short + Long):", f"{short_term_total + long_term_total:.2f}"])
+
+        csv_content = csv_buffer.getvalue()
+        csv_buffer.close()
+
+        filename = f"irs8949_{year}_{datetime.now().strftime('%Y%m%d')}.csv"
+        return Response(
+            content=csv_content,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+            },
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error generating IRS 8949 report: {str(e)}"
+        )
+
+
+@router.post("/hmrc")
+async def generate_hmrc_report(
+    tax_year: Optional[int] = Query(
+        None, description="UK tax year (e.g., 2025 for 2025-26)",
+        alias="tax_year",
+    ),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Generate HMRC Capital Gains format (United Kingdom).
+    Reports capital gains for UK self-assessment tax filing.
+    UK tax year runs April 6 to April 5.
+    """
+    try:
+        year = tax_year or (datetime.now().year - 1)
+        # UK tax year: April 6 to April 5
+        start_date = datetime(year, 4, 6)
+        end_date = datetime(year + 1, 4, 6)
+
+        result = await db.execute(
+            select(TaxEvent)
+            .where(TaxEvent.user_id == current_user.id)
+            .where(TaxEvent.disposed_at >= start_date)
+            .where(TaxEvent.disposed_at < end_date)
+            .order_by(TaxEvent.disposed_at)
+        )
+        tax_events = result.scalars().all()
+
+        if not tax_events:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No tax events found for UK tax year {year}-{year+1}",
+            )
+
+        # Convert to GBP
+        from app.services.exchange_rate import get_usd_rate, format_currency
+        gbp_rate = await get_usd_rate("GBP")
+
+        csv_buffer = io.StringIO()
+        writer = csv.writer(csv_buffer)
+
+        writer.writerow(["HMRC Capital Gains Tax Report — Crypto Assets"])
+        writer.writerow([f"Tax Year: {year}-{year+1} (April 6 to April 5)"])
+        writer.writerow([f"Exchange Rate: 1 USD = {gbp_rate:.4f} GBP"])
+        writer.writerow([])
+        writer.writerow([
+            "Asset", "Date Acquired", "Date Disposed",
+            "Proceeds (GBP)", "Cost Basis (GBP)", "Gain/Loss (GBP)",
+            "Holding Period",
+        ])
+
+        total_gbp = Decimal("0")
+        for event in tax_events:
+            acquired = event.acquired_at.strftime("%Y-%m-%d") if event.acquired_at else "VARIOUS"
+            disposed = event.disposed_at.strftime("%Y-%m-%d")
+            proceeds_gbp = event.proceeds_usd * gbp_rate
+            cost_gbp = event.cost_basis_usd * gbp_rate
+            gain_gbp = event.gain_loss_usd * gbp_rate
+            period = "Short" if event.is_short_term else "Long"
+
+            writer.writerow([
+                event.token_symbol,
+                acquired,
+                disposed,
+                f"{proceeds_gbp:.2f}",
+                f"{cost_gbp:.2f}",
+                f"{gain_gbp:.2f}",
+                period,
+            ])
+            total_gbp += gain_gbp
+
+        writer.writerow([])
+        writer.writerow(["Total Capital Gain/Loss (GBP):", f"{total_gbp:.2f}"])
+        writer.writerow(["Notes:"])
+        writer.writerow(["1. UK tax-free allowance applies (check current HMRC threshold)"])
+        writer.writerow(["2. All values converted from USD to GBP using daily rate"])
+
+        csv_content = csv_buffer.getvalue()
+        csv_buffer.close()
+
+        filename = f"hmrc_cgt_{year}-{year+1}_{datetime.now().strftime('%Y%m%d')}.csv"
+        return Response(
+            content=csv_content,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+            },
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error generating HMRC report: {str(e)}"
+        )
+
+
+@router.post("/ato")
+async def generate_ato_report(
+    tax_year: Optional[int] = Query(
+        None, description="Australian tax year (e.g., 2025 for 2025-26 FY)",
+        alias="tax_year",
+    ),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Generate ATO Crypto Capital Gains format (Australia).
+    Reports capital gains for Australian tax return.
+    ATO tax year runs July 1 to June 30.
+    """
+    try:
+        year = tax_year or (datetime.now().year - 1)
+        # ATO tax year: July 1 to June 30
+        start_date = datetime(year, 7, 1)
+        end_date = datetime(year + 1, 7, 1)
+
+        result = await db.execute(
+            select(TaxEvent)
+            .where(TaxEvent.user_id == current_user.id)
+            .where(TaxEvent.disposed_at >= start_date)
+            .where(TaxEvent.disposed_at < end_date)
+            .order_by(TaxEvent.disposed_at)
+        )
+        tax_events = result.scalars().all()
+
+        if not tax_events:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No tax events found for ATO tax year {year}-{year+1}",
+            )
+
+        # Convert to AUD
+        from app.services.exchange_rate import get_usd_rate
+        aud_rate = await get_usd_rate("AUD")
+
+        csv_buffer = io.StringIO()
+        writer = csv.writer(csv_buffer)
+
+        writer.writerow(["ATO Crypto Capital Gains Report"])
+        writer.writerow([f"Tax Year: {year}-{year+1} (July 1 to June 30)"])
+        writer.writerow([f"Exchange Rate: 1 USD = {aud_rate:.4f} AUD"])
+        writer.writerow([])
+        writer.writerow([
+            "Crypto Asset", "Date Acquired", "Date Disposed",
+            "Proceeds (AUD)", "Cost Base (AUD)", "Capital Gain/Loss (AUD)",
+            "CGT Discount Eligible",
+        ])
+
+        total_aud = Decimal("0")
+        for event in tax_events:
+            acquired = event.acquired_at.strftime("%Y-%m-%d") if event.acquired_at else "VARIOUS"
+            disposed = event.disposed_at.strftime("%Y-%m-%d")
+            proceeds_aud = event.proceeds_usd * aud_rate
+            cost_aud = event.cost_basis_usd * aud_rate
+            gain_aud = event.gain_loss_usd * aud_rate
+            # ATO 50% CGT discount applies for assets held > 12 months
+            cgt_discount_eligible = "Yes" if not event.is_short_term else "No"
+
+            writer.writerow([
+                event.token_symbol,
+                acquired,
+                disposed,
+                f"{proceeds_aud:.2f}",
+                f"{cost_aud:.2f}",
+                f"{gain_aud:.2f}",
+                cgt_discount_eligible,
+            ])
+            total_aud += gain_aud
+
+        writer.writerow([])
+        writer.writerow(["Total Capital Gain/Loss (AUD):", f"{total_aud:.2f}"])
+        writer.writerow(["Notes:"])
+        writer.writerow(["1. 50% CGT discount may apply for assets held > 12 months"])
+        writer.writerow(["2. All values converted from USD to AUD using daily rate"])
+
+        csv_content = csv_buffer.getvalue()
+        csv_buffer.close()
+
+        filename = f"ato_crypto_{year}-{year+1}_{datetime.now().strftime('%Y%m%d')}.csv"
+        return Response(
+            content=csv_content,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+            },
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error generating ATO report: {str(e)}"
+        )

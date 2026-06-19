@@ -35,6 +35,8 @@ COINGECKO_IDS = {
     "YFI": "yearn-finance",
     "CRV": "curve-dao-token",
     "SUSHI": "sushi",
+    "ARB": "arbitrum",
+    "OP": "optimism",
     "1INCH": "1inch",
     "BAL": "balancer",
     "REN": "republic-protocol",

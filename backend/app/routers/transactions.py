@@ -9,6 +9,7 @@ from app.services.auth_service import get_current_user
 from app.models.user import User
 from app.models.transaction import Transaction
 from app.models.wallet import Wallet
+from app.constants import ALL_CHAINS
 
 router = APIRouter()
 
@@ -22,7 +23,6 @@ VALID_TX_TYPES = {
     "nft_sale",
     "fee",
 }
-VALID_CHAINS = {"eth", "bnb", "polygon", "sol"}
 
 
 @router.get("/")
@@ -51,10 +51,10 @@ async def list_transactions(
     Get paginated list of transactions for authenticated user with filtering capabilities
     """
     # Validate filters
-    if chain and chain not in VALID_CHAINS:
+    if chain and chain not in ALL_CHAINS:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid chain. Supported chains: {', '.join(VALID_CHAINS)}",
+            detail=f"Invalid chain. Supported chains: {', '.join(sorted(ALL_CHAINS))}",
         )
 
     if tx_type and tx_type not in VALID_TX_TYPES:
@@ -152,10 +152,10 @@ async def get_transaction_summary(
     Get aggregated transaction statistics for authenticated user
     """
     # Validate filters
-    if chain and chain not in VALID_CHAINS:
+    if chain and chain not in ALL_CHAINS:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid chain. Supported chains: {', '.join(VALID_CHAINS)}",
+            detail=f"Invalid chain. Supported chains: {', '.join(sorted(ALL_CHAINS))}",
         )
 
     if tx_type and tx_type not in VALID_TX_TYPES:

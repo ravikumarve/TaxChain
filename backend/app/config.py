@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     ETHERSCAN_API_KEY: str = ""
     BSCSCAN_API_KEY: str = ""
     POLYGONSCAN_API_KEY: str = ""
+    ARBISCAN_API_KEY: str = ""
+    OPTIMISM_API_KEY: str = ""
+    BASESCAN_API_KEY: str = ""
     SOLSCAN_API_KEY: str = ""
     COINGECKO_API_KEY: str = ""
 

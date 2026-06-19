@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.subscription import Subscription
 from app.config import settings
+from app.constants import PLAN_CHAINS
 import logging
 import httpx
 import hmac
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 PLAN_LIMITS = {
     'free': {
         'wallets': 1,
-        'chains': ['eth'],
+        'chains': list(PLAN_CHAINS['free']),
         'tx_history_years': 1,
         'export_csv': False,
         'export_pdf': False,
@@ -31,7 +32,7 @@ PLAN_LIMITS = {
     },
     'starter': {
         'wallets': 3,
-        'chains': ['eth', 'bnb', 'polygon'],
+        'chains': list(PLAN_CHAINS['starter']),
         'tx_history_years': 3,
         'export_csv': True,
         'export_pdf': False,
@@ -41,7 +42,7 @@ PLAN_LIMITS = {
     },
     'pro': {
         'wallets': 999,
-        'chains': ['eth', 'bnb', 'polygon', 'sol'],
+        'chains': list(PLAN_CHAINS['pro']),
         'tx_history_years': 10,
         'export_csv': True,
         'export_pdf': True,

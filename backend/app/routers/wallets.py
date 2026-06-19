@@ -9,26 +9,16 @@ from app.services.auth_service import get_current_user
 from app.models.user import User
 from app.models.wallet import Wallet
 from app.models.transaction import Transaction
+from app.constants import ALL_CHAINS, CHAIN_ADDRESS_PATTERNS, CHAIN_DISPLAY_NAMES
 
 router = APIRouter()
-
-# Chain-specific address validation regex patterns
-CHAIN_VALIDATION = {
-    "eth": r"^0x[a-fA-F0-9]{40}$",
-    "bnb": r"^0x[a-fA-F0-9]{40}$",
-    "polygon": r"^0x[a-fA-F0-9]{40}$",
-    "sol": r"^[1-9A-HJ-NP-Za-km-z]{32,44}$",
-}
-
-VALID_CHAINS = {"eth", "bnb", "polygon", "sol"}
 
 
 def validate_wallet_address(address: str, chain: str) -> bool:
     """Validate wallet address format for specific chain"""
-    if chain not in VALID_CHAINS:
+    pattern = CHAIN_ADDRESS_PATTERNS.get(chain)
+    if not pattern:
         return False
-
-    pattern = CHAIN_VALIDATION[chain]
     return bool(re.match(pattern, address))
 
 
@@ -69,10 +59,10 @@ async def add_wallet(
     """Add a new wallet for the authenticated user"""
     # Validate chain
     chain = chain.lower()
-    if chain not in VALID_CHAINS:
+    if chain not in ALL_CHAINS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid chain. Supported chains: {', '.join(VALID_CHAINS)}",
+            detail=f"Invalid chain. Supported chains: {', '.join(sorted(ALL_CHAINS))}",
         )
 
     # Validate address format
