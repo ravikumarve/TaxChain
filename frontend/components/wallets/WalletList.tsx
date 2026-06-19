@@ -23,9 +23,7 @@ export default function WalletList({ refreshTrigger }: WalletListProps) {
   const [error, setError] = useState('')
   const [syncingWallets, setSyncingWallets] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    loadWallets()
-  }, [refreshTrigger])
+  useEffect(() => { loadWallets() }, [refreshTrigger])
 
   const loadWallets = async () => {
     try {
@@ -34,16 +32,11 @@ export default function WalletList({ refreshTrigger }: WalletListProps) {
       setWallets(response.data)
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to load wallets')
-    } finally {
-      setLoading(false)
-    }
+    } finally { setLoading(false) }
   }
 
   const handleDelete = async (walletId: string) => {
-    if (!confirm('Are you sure you want to delete this wallet? This will also remove all associated transactions.')) {
-      return
-    }
-
+    if (!confirm('Are you sure you want to delete this wallet? This will also remove all associated transactions.')) return
     try {
       await walletsApi.delete(walletId)
       setWallets(wallets.filter(w => w.id !== walletId))
@@ -56,16 +49,10 @@ export default function WalletList({ refreshTrigger }: WalletListProps) {
     try {
       setSyncingWallets(prev => new Set(prev).add(walletId))
       await walletsApi.sync(walletId)
-      
-      // Show success notification
       alert('Wallet sync started. It may take a few minutes to complete.')
-      
-      // Reload wallets to show updated sync status
       loadWallets()
     } catch (err: any) {
-      // Show specific error messages
-      const errorMessage = err.response?.data?.detail || 'Failed to sync wallet'
-      alert(`Sync failed: ${errorMessage}`)
+      alert(`Sync failed: ${err.response?.data?.detail || 'Unknown error'}`)
     } finally {
       setSyncingWallets(prev => {
         const newSet = new Set(prev)
@@ -76,49 +63,37 @@ export default function WalletList({ refreshTrigger }: WalletListProps) {
   }
 
   const getChainName = (chain: string) => {
-    const chainNames: { [key: string]: string } = {
-      eth: 'Ethereum',
-      bnb: 'BNB Chain',
-      polygon: 'Polygon',
-      sol: 'Solana'
+    const names: Record<string, string> = {
+      eth: 'Ethereum', bnb: 'BNB Chain', polygon: 'Polygon', sol: 'Solana',
+      arbitrum: 'Arbitrum', optimism: 'Optimism', base: 'Base', btc: 'Bitcoin',
     }
-    return chainNames[chain] || chain
+    return names[chain] || chain
   }
 
-  const getChainColor = (chain: string) => {
-    const chainColors: { [key: string]: string } = {
-      eth: 'bg-blue-500',
-      bnb: 'bg-yellow-500',
-      polygon: 'bg-purple-500',
-      sol: 'bg-violet-500'
-    }
-    return chainColors[chain] || 'bg-gray-500'
+  const chainDots: Record<string, string> = {
+    eth: '#627EEA', bnb: '#F3BA2F', polygon: '#8247E5', sol: '#9945FF',
+    arbitrum: '#28A0F0', optimism: '#FF0420', base: '#0052FF', btc: '#F7931A',
   }
 
   const getRelativeTime = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-    if (diffMins < 1) return 'just now'
-    if (diffMins < 60) return `${diffMins}m ago`
-    if (diffHours < 24) return `${diffHours}h ago`
-    if (diffDays < 7) return `${diffDays}d ago`
-    return date.toLocaleDateString()
+    const diffMs = Date.now() - new Date(dateString).getTime()
+    const mins = Math.floor(diffMs / 60000)
+    const hrs = Math.floor(diffMs / 3600000)
+    const days = Math.floor(diffMs / 86400000)
+    if (mins < 1) return 'just now'
+    if (mins < 60) return `${mins}m ago`
+    if (hrs < 24) return `${hrs}h ago`
+    if (days < 7) return `${days}d ago`
+    return new Date(dateString).toLocaleDateString()
   }
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 8)}...${address.slice(-6)}`
-  }
+  const formatAddress = (address: string) => `${address.slice(0, 8)}...${address.slice(-6)}`
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         {[1, 2, 3].map(i => (
-          <div key={i} className="animate-pulse bg-gray-200 rounded-lg p-4 h-20"></div>
+          <div key={i} className="animate-pulse bg-surface rounded-xl p-5 h-20 border border-border-dim" />
         ))}
       </div>
     )
@@ -127,13 +102,8 @@ export default function WalletList({ refreshTrigger }: WalletListProps) {
   if (error) {
     return (
       <div className="text-center py-8">
-        <div className="text-red-600 mb-2">{error}</div>
-        <button 
-          onClick={loadWallets}
-          className="text-primary hover:text-primary/80"
-        >
-          Try Again
-        </button>
+        <div className="text-loss text-sm mb-2">{error}</div>
+        <button onClick={loadWallets} className="text-indigo-400 hover:text-indigo-300 text-sm">Try Again</button>
       </div>
     )
   }
@@ -141,74 +111,60 @@ export default function WalletList({ refreshTrigger }: WalletListProps) {
   if (wallets.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 mb-4">No wallets connected yet</div>
-        <div className="text-sm text-gray-400">Add your first wallet to start tracking transactions</div>
+        <div className="text-muted mb-2">No wallets connected yet</div>
+        <div className="text-faint text-sm">Add your first wallet to start tracking transactions</div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {wallets.map(wallet => (
-        <div key={wallet.id} className="bg-white rounded-lg border border-gray-200 p-4">
+        <div key={wallet.id} className="bg-surface border border-border-dim rounded-xl p-5 hover:border-indigo-500/20 transition-colors">
           <div className="flex items-start justify-between">
-            <div className="flex-1">
-               <div className="flex items-center space-x-2 mb-2">
-                 <span className={`inline-block w-3 h-3 rounded-full ${getChainColor(wallet.chain)}`}></span>
-                 <span className="text-sm font-medium text-gray-900">
-                   {getChainName(wallet.chain)}
-                 </span>
-                 {syncingWallets.has(wallet.id) && (
-                   <span className="inline-flex items-center text-xs text-blue-600">
-                     <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                     </svg>
-                     Syncing
-                   </span>
-                 )}
-                 {wallet.label && (
-                   <span className="text-sm text-gray-600">({wallet.label})</span>
-                 )}
-               </div>
-              
-              <div className="text-sm font-mono text-gray-600 mb-2" title={wallet.address}>
-                {formatAddress(wallet.address)}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: chainDots[wallet.chain] || '#94a3b8' }} />
+                <span className="text-sm font-medium text-main">{getChainName(wallet.chain)}</span>
+                {syncingWallets.has(wallet.id) && (
+                  <span className="inline-flex items-center gap-1 text-xs text-indigo-400">
+                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Syncing
+                  </span>
+                )}
+                {wallet.label && <span className="text-sm text-muted">({wallet.label})</span>}
               </div>
 
-              <div className="text-xs text-gray-500 space-y-1">
-                <div>Transactions: {wallet.tx_count}</div>
+              <p className="text-sm font-mono text-muted mb-2 truncate" title={wallet.address}>
+                {formatAddress(wallet.address)}
+              </p>
+
+              <div className="text-xs text-faint space-y-0.5">
+                <span>Transactions: {wallet.tx_count}</span>
                 {wallet.last_synced_at ? (
-                  <div title={new Date(wallet.last_synced_at).toLocaleString()}>
+                  <span className="ml-3" title={new Date(wallet.last_synced_at).toLocaleString()}>
                     Last sync: {getRelativeTime(wallet.last_synced_at)}
-                  </div>
+                  </span>
                 ) : (
-                  <div className="text-orange-600">Never synced</div>
+                  <span className="ml-3 text-yellow-500">Never synced</span>
                 )}
               </div>
             </div>
 
-            <div className="flex flex-col space-y-2">
+            <div className="flex flex-col gap-2 ml-4 shrink-0">
               <button
                 onClick={() => handleSync(wallet.id)}
                 disabled={syncingWallets.has(wallet.id)}
-                className="text-xs bg-primary text-white px-3 py-1 rounded hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-xs bg-indigo-500/20 text-indigo-300 px-3 py-1.5 rounded-lg hover:bg-indigo-500/30 transition-colors disabled:opacity-50 font-mono"
               >
-                {syncingWallets.has(wallet.id) ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-1 h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Syncing...
-                  </span>
-                ) : (
-                  'Sync'
-                )}
+                {syncingWallets.has(wallet.id) ? 'Syncing...' : 'Sync'}
               </button>
               <button
                 onClick={() => handleDelete(wallet.id)}
-                className="text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors"
+                className="text-xs bg-red-500/15 text-red-300 px-3 py-1.5 rounded-lg hover:bg-red-500/25 transition-colors font-mono"
               >
                 Delete
               </button>

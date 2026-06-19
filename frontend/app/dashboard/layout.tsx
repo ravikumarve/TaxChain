@@ -16,14 +16,12 @@ export default function DashboardLayout({
   const router = useRouter()
 
   useEffect(() => {
-    // Check if user is authenticated
     const token = localStorage.getItem('accessToken')
     if (!token) {
       router.push('/auth/login')
       return
     }
 
-    // Extract email from token (simple decode for display)
     try {
       const payload = JSON.parse(atob(token.split('.')[1]))
       setUserEmail(payload.sub || '')
@@ -31,7 +29,6 @@ export default function DashboardLayout({
       console.error('Error decoding token:', error)
     }
 
-    // Fetch current plan
     const fetchPlan = async () => {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payments/subscription-status`, {
@@ -61,20 +58,15 @@ export default function DashboardLayout({
   const handleUpgrade = async (plan: string) => {
     try {
       const token = localStorage.getItem('accessToken')
-      
-      // Determine provider based on user location (simplified)
-      const provider = 'razorpay' // Default to Razorpay for India
-      
+      const provider = 'razorpay'
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payments/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          plan,
-          provider,
-        }),
+        body: JSON.stringify({ plan, provider }),
       })
 
       if (!response.ok) {
@@ -84,7 +76,6 @@ export default function DashboardLayout({
       const data = await response.json()
 
       if (provider === 'razorpay') {
-        // Initialize Razorpay checkout
         const options = {
           key: data.key_id,
           amount: data.amount,
@@ -93,19 +84,10 @@ export default function DashboardLayout({
           description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan`,
           order_id: data.order_id,
           handler: function (response: any) {
-            // Payment successful
-            console.log('Payment successful:', response)
-            // Refresh page to update plan
             window.location.reload()
           },
-          prefill: {
-            name: '',
-            email: userEmail,
-            contact: '',
-          },
-          theme: {
-            color: '#6366F1',
-          },
+          prefill: { name: '', email: userEmail, contact: '' },
+          theme: { color: '#6366F1' },
         }
 
         // @ts-ignore - Razorpay is loaded via script
@@ -119,13 +101,18 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-bg-secondary">
+    <div className="flex h-screen bg-void">
       {/* Sidebar */}
-      <div className="w-64 bg-sidebar-bg text-sidebar-text flex flex-col">
+      <div className="w-64 bg-panel border-r border-border-dim text-sidebar-text flex flex-col">
         <div className="p-6">
-          <h1 className="text-xl font-bold">TaxChain</h1>
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center justify-center w-7 h-7 bg-indigo-500/20 border border-indigo-500/40 rounded text-indigo-300 font-bold text-xs">
+              #TC
+            </span>
+            <h1 className="text-lg font-semibold text-main">TaxChain</h1>
+          </div>
           {userEmail && (
-            <p className="text-sm text-sidebar-text/60 mt-1">{userEmail}</p>
+            <p className="text-xs text-muted mt-2 font-mono">{userEmail}</p>
           )}
           <div className="mt-4">
             <PlanBadge
@@ -135,54 +122,43 @@ export default function DashboardLayout({
             />
           </div>
         </div>
-        
-        <nav className="mt-6 flex-1">
-          <ul className="space-y-2">
-            <li>
-              <a href="/dashboard" className="block px-6 py-2 text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-bg/50">
-                Dashboard
-              </a>
-            </li>
-            <li>
-              <a href="/dashboard/wallets" className="block px-6 py-2 text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-bg/50">
-                Wallets
-              </a>
-            </li>
-            <li>
-              <a href="/dashboard/transactions" className="block px-6 py-2 text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-bg/50">
-                Transactions
-              </a>
-            </li>
-            <li>
-              <a href="/dashboard/tax" className="block px-6 py-2 text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-bg/50">
-                Tax Report
-              </a>
-            </li>
-            <li>
-              <a href="/dashboard/reports" className="block px-6 py-2 text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-bg/50">
-                Export
-              </a>
-            </li>
+
+        <nav className="mt-2 flex-1 px-3">
+          <ul className="space-y-1">
+            {[
+              { href: '/dashboard', label: 'Dashboard' },
+              { href: '/dashboard/wallets', label: 'Wallets' },
+              { href: '/dashboard/transactions', label: 'Transactions' },
+              { href: '/dashboard/tax', label: 'Tax Report' },
+              { href: '/dashboard/reports', label: 'Export' },
+            ].map((item) => (
+              <li key={item.href}>
+                <a
+                  href={item.href}
+                  className="block px-3 py-2 rounded-lg text-sm text-muted hover:text-main hover:bg-indigo-500/10 transition-colors font-mono tracking-wide"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
           </ul>
         </nav>
 
-        {/* Logout button */}
-        <div className="p-4">
+        <div className="p-4 border-t border-border-dim">
           <button
             onClick={handleLogout}
-            className="w-full px-6 py-2 text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-bg/50 text-left"
+            className="w-full px-3 py-2 text-sm text-muted hover:text-main hover:bg-indigo-500/10 rounded-lg transition-colors text-left font-mono tracking-wide"
           >
             Sign Out
           </button>
         </div>
       </div>
-      
+
       {/* Main content */}
-      <div className="flex-1 overflow-auto bg-bg-primary">
+      <div className="flex-1 overflow-auto bg-void">
         {children}
       </div>
 
-      {/* Upgrade Modal */}
       <UpgradeModal
         isOpen={isUpgradeModalOpen}
         onClose={() => setIsUpgradeModalOpen(false)}

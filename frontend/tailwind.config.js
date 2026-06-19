@@ -34,6 +34,9 @@ module.exports = {
         'text-main': '#ffffff',
         'text-muted': '#94a3b8',
         'text-faint': '#475569',
+        // shadcn card compat (used by Card component)
+        card: '#0d1120',
+        'muted-foreground': '#94a3b8',
         // Sidebar (kept for dashboard)
         sidebar: {
           bg: '#0F172A',

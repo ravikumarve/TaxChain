@@ -11,21 +11,19 @@ export default function SignupPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    country: 'IN'
+    country: 'IN',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    
-    // Validate passwords match
+
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match')
       setIsLoading(false)
       return
     }
-    
-    // Validate password strength
+
     if (formData.password.length < 8) {
       alert('Password must be at least 8 characters long')
       setIsLoading(false)
@@ -33,14 +31,9 @@ export default function SignupPage() {
     }
 
     try {
-      // Call registration API
       const response = await authApi.register(formData.email, formData.password, formData.country)
-      
-      // Store tokens
       localStorage.setItem('accessToken', response.data.access_token)
       localStorage.setItem('refreshToken', response.data.refresh_token)
-      
-      // Redirect to dashboard
       window.location.href = '/dashboard'
     } catch (error: any) {
       alert(error.response?.data?.detail || 'Registration failed. Please try again.')
@@ -50,27 +43,28 @@ export default function SignupPage() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }))
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-6">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-void">
+      <div className="max-w-md w-full space-y-8 p-8">
+        {/* Logo */}
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-500/20 border border-indigo-500/40 rounded-xl text-indigo-300 font-bold text-sm mb-4">
+            #TC
+          </div>
+          <h2 className="text-2xl font-bold text-main">
             Create your TaxChain account
           </h2>
-          <p className="text-center text-gray-600 mt-2">
+          <p className="text-muted mt-2 text-sm">
             Start tracking your crypto portfolio and taxes
           </p>
         </div>
-        
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-muted mb-1.5">
               Email address
             </label>
             <input
@@ -80,13 +74,13 @@ export default function SignupPage() {
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-3 py-2.5 bg-surface border border-border-dim rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 text-main placeholder:text-faint text-sm"
               placeholder="Enter your email"
             />
           </div>
-          
+
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-muted mb-1.5">
               Password
             </label>
             <input
@@ -96,14 +90,14 @@ export default function SignupPage() {
               required
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Enter your password"
+              className="w-full px-3 py-2.5 bg-surface border border-border-dim rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 text-main placeholder:text-faint text-sm"
+              placeholder="Min 8 characters"
               minLength={8}
             />
           </div>
-          
+
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-muted mb-1.5">
               Confirm Password
             </label>
             <input
@@ -113,14 +107,14 @@ export default function SignupPage() {
               required
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-3 py-2.5 bg-surface border border-border-dim rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 text-main placeholder:text-faint text-sm"
               placeholder="Confirm your password"
               minLength={8}
             />
           </div>
-          
+
           <div>
-            <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="country" className="block text-sm font-medium text-muted mb-1.5">
               Country
             </label>
             <select
@@ -128,7 +122,7 @@ export default function SignupPage() {
               name="country"
               value={formData.country}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-3 py-2.5 bg-surface border border-border-dim rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 text-main text-sm"
             >
               <option value="IN">India</option>
               <option value="US">United States</option>
@@ -138,21 +132,19 @@ export default function SignupPage() {
               <option value="DE">Germany</option>
             </select>
           </div>
-          
-          <div>
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              className="w-full"
-            >
-              Create Account
-            </Button>
-          </div>
-          
+
+          <Button
+            type="submit"
+            isLoading={isLoading}
+            className="w-full"
+          >
+            Create Account
+          </Button>
+
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted">
               Already have an account?{' '}
-              <Link href="/auth/login" className="text-primary hover:text-primary/80 font-medium">
+              <Link href="/auth/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
                 Sign in
               </Link>
             </p>

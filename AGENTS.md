@@ -32,6 +32,35 @@
 
 ---
 
+### 2026-06-20 02:00 - Phase 2 Landing Sections Complete
+**Agent:** orchestrator
+**State:** Success
+**Summary:** All 7 landing sections built and composed. 13 new components. Build clean (12/12 pages, 0 errors).
+
+**Phase 2 — Deliverables (13 new components):**
+- `Navbar.tsx` — scroll-aware glassmorphism, `#TC` logo, mono links (COMPLIANCE | INFRASTRUCTURE | PRICING), mobile hamburger, GitHub + Connect Wallet CTAs
+- `WalletCard.tsx` — glass pane, 3 wallet previews (E/B/P chain colors), sync status dots, -3deg rotate with hover lift
+- `TaxTerminal.tsx` — glass pane, 5-line FIFO engine log (SYNC/ENGINE/MATCH/PRICING/SUCCESS), traffic light dots, +2deg rotate with hover lift
+- `HeroSection.tsx` — 2-col `1fr 1.1fr` grid, mono badge with emerald dot, `text-gradient` headline, subtitle, dual CTAs (Generate Report / View Supported Chains)
+- `BentoNode.tsx` — configurable 12-col fractional span (4/6/8/12), index, label, title, content
+- `BentoMatrix.tsx` — 4-node bento grid: Global Jurisdictions (span-8, 4 format sub-cards), Strict FIFO (span-4), Multi-Currency (span-6, 8 fiat badges), Read-Only Security (span-6, 6 item checklist)
+- `ChainBadge.tsx` — 8-chain badge (ETH/BNB/POL/ARB/OP/BASE/SOL/BTC) with colored symbol + name
+- `TechStackCard.tsx` — dark surface card with 6-layer tech stack (Next.js → FastAPI → PostgreSQL → APScheduler → Lemon Squeezy/Razorpay → CoinGecko)
+- `FormatBlock.tsx` — export engines (CSV/PDF), jurisdictional formats (ITR/IRS/HMRC/ATO), 6-item system hardening checklist
+- `ArchitectureSection.tsx` — 2-col `1fr 1.2fr` layout with chain badges grid + tech stack + format block
+- `PricingCard.tsx` — individual plan card with feature list, checkmark/x indicators, Most Popular banner
+- `PricingSection.tsx` — 3-col pricing matrix (Free $0 / Starter $9 / Pro $19)
+- `Footer.tsx` — 4-col with brand, platform, developers, company; copyright + SYSTEMS OPERATIONAL indicator
+
+**Frontend Health:**
+- 12/12 pages build (0 errors, 0 warnings)
+- Landing page: 2.16 kB HTML / 98.2 kB First Load JS
+- Shared JS: 87.3 kB (53.6 kB vendor chunk)
+
+**Commit:** `b572027` pushed to origin/main
+
+---
+
 ### 2026-06-19 18:30 - Full Test Suite Green + Frontend Redesign Blueprint
 **Agent:** orchestrator
 **State:** Success

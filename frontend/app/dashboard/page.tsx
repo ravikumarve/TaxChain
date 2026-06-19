@@ -14,45 +14,31 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">Dashboard</h1>
-            <p className="text-text-secondary">Your crypto portfolio overview</p>
-          </div>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/80 transition-colors"
-          >
-            Add Wallet
-          </button>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-main">Dashboard</h1>
+          <p className="text-muted text-sm mt-1">Your crypto portfolio overview</p>
         </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <PortfolioCard
-          title="Portfolio Value"
-          value={0}
-          subtitle="Total portfolio value"
-        />
-        
-        <PortfolioCard
-          title="Total Gain/Loss"
-          value={0}
-          subtitle="All-time performance"
-        />
-        
-        <PortfolioCard
-          title="Connected Wallets"
-          value={0}
-          valuePrefix=""
-          subtitle="Total wallets connected"
-        />
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="btn btn-primary text-xs py-2 px-4"
+        >
+          + Add Wallet
+        </button>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Wallets</h2>
+      {/* Portfolio Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <PortfolioCard title="Portfolio Value" value={0} subtitle="Total portfolio value" />
+        <PortfolioCard title="Total Gain/Loss" value={0} subtitle="All-time performance" />
+        <PortfolioCard title="Connected Wallets" value={0} valuePrefix="" subtitle="Total wallets connected" />
+      </div>
+
+      {/* Wallet List */}
+      <div className="bg-surface border border-border-dim rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-main mb-4">Your Wallets</h2>
         <WalletList refreshTrigger={refreshTrigger} />
       </div>
 
