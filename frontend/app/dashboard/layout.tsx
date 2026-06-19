@@ -101,7 +101,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-void">
+    <div className="flex min-h-screen bg-void">
       {/* Sidebar */}
       <div className="w-64 bg-panel border-r border-border-dim text-sidebar-text flex flex-col">
         <div className="p-6">

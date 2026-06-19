@@ -9,9 +9,8 @@ const wallets = [
 ]
 
 /**
- * WalletCard — Left glass card in hero dual viewport.
- * Shows 3 wallet previews with chain-colored badges and sync status.
- * Transforms -3deg at rest → 0deg + lift on hover.
+ * WalletCard — Glass card with 3 wallet previews.
+ * Fixed width on desktop (280px), full-width on mobile with no rotation.
  */
 export default function WalletCard() {
   const [hovered, setHovered] = useState(false)
@@ -24,10 +23,10 @@ export default function WalletCard() {
         hovered ? 'border-border-glow' : ''
       }`}
       style={{
-        width: 280,
+        width: 'clamp(240px, 80vw, 280px)',
         transform: hovered
           ? 'rotate(0deg) translateY(-10px)'
-          : 'rotate(-3deg) translateY(0px)',
+          : 'rotate(0deg) translateY(0px)',
       }}
     >
       <div className="font-mono text-[10px] tracking-widest text-muted uppercase mb-4">
@@ -43,11 +42,7 @@ export default function WalletCard() {
                 <div className="font-mono text-[10px] text-faint">{w.address}</div>
               </div>
             </div>
-            <span
-              className={`text-[10px] font-mono ${
-                w.synced ? 'text-emerald' : 'text-faint'
-              }`}
-            >
+            <span className={`text-[10px] font-mono ${w.synced ? 'text-emerald' : 'text-faint'}`}>
               ● {w.synced ? 'Synced' : 'Pending'}
             </span>
           </div>

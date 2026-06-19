@@ -61,6 +61,35 @@
 
 ---
 
+### 2026-06-20 03:30 - Phase 3 Dashboard Darkening Complete
+**Agent:** orchestrator
+**State:** Success
+**Summary:** All dashboard pages, auth pages, and shared components darkened to void theme. 15 files updated.
+
+**Phase 3 — Deliverables:**
+- `app/dashboard/layout.tsx` — dark sidebar (bg-panel, #TC logo, indigo hover), bg-void main area
+- `app/dashboard/page.tsx` — dark PortfolioCard wrappers, btn-primary CTA
+- `app/dashboard/wallets/page.tsx` — already simplified, uses WalletList internal state
+- `app/dashboard/transactions/page.tsx` — dark table, dark filters (8-chain), dark pagination, type badge colors adapted to void theme
+- `app/dashboard/tax/page.tsx` — dark cards, summary grid, token breakdown table, gain/loss colors
+- `app/dashboard/reports/page.tsx` — dark export cards with icon boxes, plan feature matrix in dark gradient card
+- `app/auth/login/page.tsx` — dark void bg, #TC logo header, surface inputs
+- `app/auth/signup/page.tsx` — dark void bg, dark form with country select
+- `components/dashboard/ChainBadge.tsx` — extended to 8 chains (arbitrum, optimism, base, btc), inline style dot colors
+- `components/dashboard/PortfolioCard.tsx` — dark skeleton loader, muted/faint text
+- `components/wallets/AddWalletModal.tsx` — dark modal overlay + surface form fields, 8-chain support, BTC address validation
+- `components/wallets/WalletList.tsx` — dark cards with chain dot colors, sync/delete buttons
+- `components/payments/UpgradeModal.tsx` — dark modal with plan cards, INR/USD currency toggle
+- `components/ui/Button.tsx` — secondary/outline/ghost darkened with surface/border tokens
+- `components/ui/Card.tsx` — bg-card → panel, text-muted-foreground mapped
+- `tailwind.config.js` — added card + muted-foreground color tokens
+
+**Frontend Health:**
+- 12/12 pages build (0 errors, 0 warnings)
+- Full dark void theme across all routes
+
+**Commit:** `c9e1b00` pushed to origin/main
+
 ### 2026-06-19 18:30 - Full Test Suite Green + Frontend Redesign Blueprint
 **Agent:** orchestrator
 **State:** Success
