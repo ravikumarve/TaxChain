@@ -1,4 +1,5 @@
 import logging
+import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -9,9 +10,12 @@ from alembic.config import Config
 from alembic import command
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, wallets, transactions, reports
+from app.routers import auth, wallets, transactions, reports, payments, webhooks
 from app.utils.error_handler import ErrorResponse, handle_general_error
 import traceback
+
+# Ensure logs directory exists
+os.makedirs("logs", exist_ok=True)
 
 # Configure logging
 logging.basicConfig(
@@ -72,6 +76,8 @@ app.include_router(
     transactions.router, prefix="/api/transactions", tags=["transactions"]
 )
 app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
+app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
+app.include_router(webhooks.router, prefix="/api/webhooks", tags=["webhooks"])
 
 
 @app.get("/")
