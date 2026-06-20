@@ -27,8 +27,8 @@ export default function TransactionsPage() {
         chain: filters.chain || undefined,
         tx_type: filters.tx_type || undefined,
       })
-      setTransactions(response.data.data)
-      setTotalPages(response.data.pagination.pages)
+      setTransactions(response.data.transactions || [])
+      setTotalPages(response.data.pagination?.pages || 1)
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to fetch transactions')
     } finally { setLoading(false) }

@@ -37,23 +37,32 @@ engine = create_async_engine(
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
-@retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=2, max=10),
-    retry=retry_if_exception_type((OperationalError, TimeoutError)),
-    before_sleep=lambda retry_state: logger.warning(
-        f"DB connection attempt {retry_state.attempt_number} failed, retrying..."
-    ),
-)
 async def get_db():
-    async with async_session() as session:
+    """Yield an AsyncSession with retry logic for connection failures.
+
+    Note: Must NOT use @retry decorator — tenacity breaks async generator
+    detection (inspect.isasyncgenfunction returns False), which prevents
+    FastAPI's Depends() from properly resolving the yield.
+    """
+    import asyncio
+
+    last_error = None
+    for attempt in range(1, 4):  # 3 attempts
+        session = None
         try:
-            # Verify connection is alive
-            await session.execute(text("SELECT 1"))
-            yield session
-            await session.commit()
+            async with async_session() as session:
+                await session.execute(text("SELECT 1"))
+                yield session
+                await session.commit()
+            return  # success, exit generator
+        except (OperationalError, TimeoutError) as e:
+            last_error = e
+            logger.warning(f"DB connection attempt {attempt}/3 failed: {e}")
+            if attempt < 3:
+                await asyncio.sleep(min(2**attempt, 10))
         except Exception:
-            await session.rollback()
+            if session is not None:
+                await session.rollback()
             raise
-        finally:
-            await session.close()
+
+    raise last_error or OperationalError("All database connection attempts failed")
