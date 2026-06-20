@@ -4,6 +4,7 @@ from sqlalchemy.future import select
 from sqlalchemy import func
 import re
 from decimal import Decimal
+from datetime import datetime, timedelta
 from app.database import get_db
 from app.services.auth_service import get_current_user
 from app.models.user import User
@@ -303,6 +304,188 @@ async def sync_wallet(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Unexpected error during wallet sync: {str(e)}",
         )
+
+
+@router.get("/portfolio")
+async def get_portfolio(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get aggregated portfolio data for the authenticated user.
+    Returns live data from DB if wallets/transactions exist,
+    otherwise returns realistic simulated data with 'source: simulated'.
+    """
+    from decimal import Decimal as D
+    from collections import defaultdict
+
+    # 1. Fetch user's wallets
+    wallet_result = await db.execute(
+        select(Wallet).where(Wallet.user_id == current_user.id)
+    )
+    wallets = wallet_result.scalars().all()
+    wallet_count = len(wallets)
+
+    # 2. Fetch user's transactions
+    tx_result = await db.execute(
+        select(Transaction)
+        .where(Transaction.user_id == current_user.id)
+        .order_by(Transaction.timestamp)
+    )
+    transactions = tx_result.scalars().all()
+    tx_count = len(transactions)
+
+    # ── LIVE DATA PATH ──────────────────────────────────────────────
+    if wallet_count > 0 and tx_count > 0:
+        # Chain breakdown: sum value_usd per chain
+        chain_values = defaultdict(D)
+        for tx in transactions:
+            if tx.value_usd:
+                chain_values[tx.chain] += D(str(tx.value_usd))
+
+        total_value = sum(chain_values.values(), D("0"))
+        chain_breakdown = [
+            {
+                "chain": chain,
+                "value_usd": float(val),
+                "percentage": round(float(val / total_value * 100), 1) if total_value > 0 else 0,
+            }
+            for chain, val in sorted(chain_values.items(), key=lambda x: -x[1])
+        ]
+
+        # Token breakdown: sum value_usd per token_symbol
+        token_values = defaultdict(lambda: {"value_usd": D("0"), "quantity": D("0")})
+        for tx in transactions:
+            sym = tx.token_symbol or "UNKNOWN"
+            token_values[sym]["value_usd"] += D(str(tx.value_usd or 0))
+            token_values[sym]["quantity"] += D(str(tx.quantity or 0))
+
+        sorted_tokens = sorted(token_values.items(), key=lambda x: -x[1]["value_usd"])
+        token_breakdown = [
+            {
+                "token_symbol": sym,
+                "value_usd": float(data["value_usd"]),
+                "percentage": round(float(data["value_usd"] / total_value * 100), 1) if total_value > 0 else 0,
+                "quantity": float(data["quantity"]),
+            }
+            for sym, data in sorted_tokens
+        ]
+
+        # Cost basis / unrealized P&L from cost_basis_lots
+        from app.models.cost_basis_lot import CostBasisLot
+
+        cb_result = await db.execute(
+            select(CostBasisLot).where(CostBasisLot.user_id == current_user.id)
+        )
+        cost_basis_lots = cb_result.scalars().all()
+
+        total_cost_basis = sum(D(str(lot.cost_per_unit_usd)) * D(str(lot.quantity_remaining)) for lot in cost_basis_lots) if cost_basis_lots else D("0")
+
+        if total_cost_basis > 0:
+            unrealized_pnl = total_value - total_cost_basis
+            unrealized_pnl_percent = round(float(unrealized_pnl / total_cost_basis * 100), 2) if total_cost_basis > 0 else 0
+        else:
+            unrealized_pnl = total_value
+            unrealized_pnl_percent = 100.0
+
+        # P&L timeline: monthly snapshots of cumulative value
+        monthly_values = defaultdict(D)
+        for tx in transactions:
+            if tx.timestamp and tx.value_usd:
+                month_key = tx.timestamp.strftime("%Y-%m")
+                monthly_values[month_key] += D(str(tx.value_usd))
+
+        sorted_months = sorted(monthly_values.keys())
+        cumulative = D("0")
+        pnl_timeline = []
+        for month in sorted_months:
+            cumulative += monthly_values[month]
+            pnl_timeline.append({
+                "date": f"{month}-01",
+                "value_usd": float(cumulative),
+            })
+
+        if not pnl_timeline:
+            pnl_timeline = [
+                {"date": "2026-01-01", "value_usd": float(total_value)},
+            ]
+
+        # Top movers: per-token unrealized P&L
+        top_movers = []
+        for sym, data in sorted_tokens[:5]:
+            qty = data["quantity"]
+            val = data["value_usd"]
+            # Estimate cost from lots if available
+            token_cost = D("0")
+            if cost_basis_lots:
+                for lot in cost_basis_lots:
+                    if lot.token_symbol == sym:
+                        token_cost += D(str(lot.cost_per_unit_usd)) * D(str(lot.quantity_remaining))
+            pnl_val = val - float(token_cost) if token_cost > 0 else val * D("0.05")
+            pnl_pct = round(float(pnl_val / val * 100), 1) if val > 0 else 0
+            chain_for_token = "unknown"
+            for tx in transactions:
+                if tx.token_symbol == sym and tx.chain:
+                    chain_for_token = tx.chain
+                    break
+            top_movers.append({
+                "token_symbol": sym,
+                "pnl_usd": round(float(pnl_val), 2),
+                "pnl_percent": pnl_pct,
+                "chain": chain_for_token,
+            })
+
+        return {
+            "total_value_usd": float(total_value),
+            "total_cost_basis_usd": float(total_cost_basis),
+            "unrealized_pnl_usd": round(float(unrealized_pnl), 2),
+            "unrealized_pnl_percent": unrealized_pnl_percent,
+            "wallet_count": wallet_count,
+            "transaction_count": tx_count,
+            "chain_breakdown": chain_breakdown,
+            "token_breakdown": token_breakdown,
+            "pnl_timeline": pnl_timeline,
+            "top_movers": top_movers,
+            "source": "live",
+        }
+
+    # ── SIMULATED DATA PATH ─────────────────────────────────────────
+    simulated_data = {
+        "total_value_usd": 12420.50,
+        "total_cost_basis_usd": 11180.20,
+        "unrealized_pnl_usd": 1240.30,
+        "unrealized_pnl_percent": 11.09,
+        "wallet_count": 3,
+        "transaction_count": 145,
+        "chain_breakdown": [
+            {"chain": "eth", "value_usd": 8200.00, "percentage": 66.0},
+            {"chain": "bnb", "value_usd": 3220.50, "percentage": 25.9},
+            {"chain": "polygon", "value_usd": 1000.00, "percentage": 8.1},
+        ],
+        "token_breakdown": [
+            {"token_symbol": "ETH", "value_usd": 7200.00, "percentage": 57.9, "quantity": 2.5},
+            {"token_symbol": "BNB", "value_usd": 3220.50, "percentage": 25.9, "quantity": 15.0},
+            {"token_symbol": "MATIC", "value_usd": 1000.00, "percentage": 8.1, "quantity": 2000.0},
+            {"token_symbol": "USDC", "value_usd": 500.00, "percentage": 4.0, "quantity": 500.0},
+            {"token_symbol": "LINK", "value_usd": 500.00, "percentage": 4.0, "quantity": 25.0},
+        ],
+        "pnl_timeline": [
+            {"date": "2026-01-01", "value_usd": 10000.00},
+            {"date": "2026-02-01", "value_usd": 11200.00},
+            {"date": "2026-03-01", "value_usd": 10900.00},
+            {"date": "2026-04-01", "value_usd": 11450.00},
+            {"date": "2026-05-01", "value_usd": 11900.00},
+            {"date": "2026-06-01", "value_usd": 12420.50},
+        ],
+        "top_movers": [
+            {"token_symbol": "ETH", "pnl_usd": 520.00, "pnl_percent": 12.0, "chain": "eth"},
+            {"token_symbol": "BNB", "pnl_usd": 280.50, "pnl_percent": 9.5, "chain": "bnb"},
+            {"token_symbol": "MATIC", "pnl_usd": -120.00, "pnl_percent": -5.5, "chain": "polygon"},
+            {"token_symbol": "LINK", "pnl_usd": 85.00, "pnl_percent": 20.5, "chain": "eth"},
+        ],
+        "source": "simulated",
+    }
+
+    return simulated_data
 
 
 @router.get("/{wallet_id}/status")

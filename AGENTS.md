@@ -1066,4 +1066,33 @@ NEXT_PUBLIC_LEMONSQUEEZY_STORE_ID=
 *All agents read this before any task. No exceptions.*
 *When instructions conflict, this file wins.*
 
+### 2026-06-20 12:30 — Competitive Analysis + Bug-Fix Sprint
+**Agent:** orchestrator
+**State:** Success
+**Summary:** Competitive analysis completed against Koinly/CoinLedger/CoinTracker/ZenLedger. Bug fixes deployed for login, transactions page, tax page, and TaxTerminal spacing.
+
+**Fixes Deployed:**
+- Login: removed slowapi decorators + added `/login/json` endpoint + fixed `@retry` breaking async generator detection in `get_db()`
+- Transactions: `response.data.data` → `response.data.transactions` (key mismatch)
+- Tax page: wrong API path (`/tax/summary` → `/reports/tax/summary`) + added missing fields to empty response
+- TaxTerminal: 6px gap → 12px margin-right (matching original HTML)
+- Demo user created: `demo@taxchain.app` / `Demo@1234` (Pro)
+
+**Competitive Findings Saved:**
+- File: `TAXCHAIN_VS_COMPETITORS.md`
+- 6 sprints planned: Portfolio Dashboard, In-Memory Ledger, Accounting Methods, Tax-Loss Harvesting, DeFi Support, PWA
+- Critical gap: no portfolio tracking dashboard, no CSV import, no transaction editor, FIFO-only
+- Key insight: $19/mo is 2-3x more expensive than Koinly's $49/yr — pricing revision needed
+- Unique moats: India ITR VDA, 8 fiat currencies, dark void theme, modern stack
+
+**Next Turn Directive:**
+- Start Sprint 6: Portfolio Dashboard (charts, allocation, unrealized P&L)
+- Or Sprint 7: In-Memory Ledger (transaction editor + CSV import + error reconciliation)
+
+---
+
+*This file is the single source of truth for TaxChain.*
+*All agents read this before any task. No exceptions.*
+*When instructions conflict, this file wins.*
+
 — Sensei approved. Build brutal. Ship clean.
