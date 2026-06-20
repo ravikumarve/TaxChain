@@ -160,6 +160,55 @@ export default function TaxPage() {
             </Card>
           )}
 
+          {/* India Tax Summary */}
+          {taxSummary.india_tax && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-main">India Tax Summary (Section 115BBH)</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-surface border border-border-dim rounded-xl p-4">
+                  <span className="text-xs text-muted font-mono uppercase tracking-wider">Total Gains</span>
+                  <p className="text-lg font-mono text-emerald font-semibold mt-1">
+                    {'\u20B9'}{Number(taxSummary.india_tax.total_gains_inr).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="bg-surface border border-border-dim rounded-xl p-4">
+                  <span className="text-xs text-muted font-mono uppercase tracking-wider">Total Losses</span>
+                  <p className="text-lg font-mono text-loss font-semibold mt-1">
+                    {'\u20B9'}{Number(taxSummary.india_tax.total_losses_inr).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </p>
+                  <span className="text-xs text-faint">Non-deductible per Indian tax law</span>
+                </div>
+                <div className="bg-surface border border-border-dim rounded-xl p-4">
+                  <span className="text-xs text-muted font-mono uppercase tracking-wider">Estimated Tax (30%)</span>
+                  <p className="text-lg font-mono text-main font-semibold mt-1">
+                    {'\u20B9'}{Number(taxSummary.india_tax.estimated_tax_inr).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="bg-surface border border-border-dim rounded-xl p-4">
+                  <span className="text-xs text-muted font-mono uppercase tracking-wider">TDS Deducted</span>
+                  <p className="text-lg font-mono text-indigo-400 font-semibold mt-1">
+                    {'\u20B9'}{Number(taxSummary.india_tax.total_tds_deducted_inr).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </p>
+                  <span className="text-xs text-faint">Credit available in ITR</span>
+                </div>
+              </div>
+              <div className="bg-surface border border-amber-500/20 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-amber-400 text-lg">⚠</span>
+                  <div>
+                    <p className="text-sm font-semibold text-main">Net Tax Due</p>
+                    <p className="text-2xl font-mono text-main font-bold mt-1">
+                      {'\u20B9'}{Number(taxSummary.india_tax.net_tax_due_inr).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-faint mt-2">
+                      {taxSummary.india_tax.loss_offsetting}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Empty */}
           {taxSummary.transaction_count === 0 && (
             <Card className="p-12 text-center">

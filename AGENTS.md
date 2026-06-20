@@ -1066,6 +1066,63 @@ NEXT_PUBLIC_LEMONSQUEEZY_STORE_ID=
 *All agents read this before any task. No exceptions.*
 *When instructions conflict, this file wins.*
 
+### 2026-06-20 20:00 — India Tax Rules: 30% Flat Tax + TDS + Loss Offsetting
+**Agent:** orchestrator
+**State:** Success
+**Summary:** India-specific tax compliance implemented per Section 115BBH and Section 194S of the Income Tax Act. All three gap items closed.
+
+**India-Specific Tax Features Implemented:**
+
+**1. 30% Flat Tax (Section 115BBH)**
+- `calculate_with_method()` in tax_engine.py now accepts `country` parameter
+- When country=="IN": all events marked `is_short_term = True` (no ST/LT distinction)
+- New `calculate_india_tax_liability()` service computes:
+  - Gains tracked separately from losses (losses don't offset)
+  - 30% flat rate applied to gross gains only
+  - Tax = 30% × total_gains (losses ignored entirely)
+- Reports router passes country through to tax engine
+
+**2. TDS (1% Section 194S)**
+- `tds_usd` column added to Transaction model (DECIMAL 20,8)
+- Alembic migration `003_add_tds_to_transactions.py`
+- `calculate_tds()` function: 1% of gross proceeds per sell/disposal
+- ITR Schedule VDA export: "Type of Capital Gains" column replaced with "TDS Deducted (INR)"
+- ITR CSV now includes footer summary: total gains, losses, TDS, net tax due
+- TDS automatically calculated on all sell/disposal transactions
+
+**3. Loss Offsetting Prohibited**
+- Tax engine branches: when country=="IN", gains and losses are NOT netted
+- Total losses shown separately (informational only)
+- Losses explicitly marked as "Non-deductible per Indian tax law"
+- Frontend shows disclaimer on tax-harvesting page for Indian users
+- ITR export includes note: "Losses do NOT offset gains per Indian tax law"
+
+**Files Created:**
+- `backend/app/services/india_tax_service.py` — Full India tax liability calculator
+- `backend/alembic/versions/003_add_tds_to_transactions.py` — TDS column migration
+
+**Files Modified:**
+- `backend/app/models/transaction.py` — added `tds_usd` column
+- `backend/app/services/tax_engine.py` — added `country` param to `calculate_with_method()`
+- `backend/app/routers/reports.py` — India tax overlay in summary + ITR TDS columns
+- `backend/app/routers/auth.py` — added `GET /auth/me` endpoint
+- `frontend/app/dashboard/tax/page.tsx` — 4-card India tax grid + net tax due
+- `frontend/app/dashboard/tax-harvesting/page.tsx` — India disclaimer
+- `frontend/types/index.ts` — added `IndiaTaxSummary` interface
+
+**Build Status:**
+- Frontend: 15/15 pages, 0 errors
+- Backend: 143 passed, 8 skipped, 0 failures
+- DB: `tds_usd` column added to existing SQLite DB
+
+**Next Turn Directive:**
+- Production Deployment (Vercel + Render + Supabase)
+- PWA + Mobile Optimization (Sprint 11)
+- More Chains + Annual Pricing (Sprint 12)
+- Gumroad/AppSumo Lifetime Deal (Sprint 13)
+
+---
+
 ### 2026-06-20 16:00 — Sprints 8+9+10: Accounting Methods + Tax-Loss Harvesting + DeFi Support
 **Agent:** orchestrator
 **State:** Success

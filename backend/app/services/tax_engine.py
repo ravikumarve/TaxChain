@@ -374,6 +374,7 @@ def calculate_with_method(
     user_id: str,
     token_symbol: str,
     transactions: List[Transaction],
+    country: str = "US",
 ) -> List[TaxEvent]:
     """Dispatch to the right calculator based on method string."""
     calculator = get_calculator(method, user_id)
@@ -387,8 +388,6 @@ def calculate_with_method(
 
             # BUY events: add to cost basis lots
             if tx.tx_type in ("transfer_in", "airdrop", "staking", "lp_deposit", "yield_farm"):
-                # LP Deposit: treat as buying LP tokens
-                # Yield Farm deposit: no immediate tax event, but track as basis
                 calculator.add_lot(
                     quantity=tx_quantity,
                     cost_per_unit=tx_price,
@@ -397,13 +396,17 @@ def calculate_with_method(
 
             # SELL / TAXABLE events: consume from lots
             elif tx.tx_type in ("transfer_out", "trade", "lp_withdraw", "liquidation"):
-                # LP Withdraw: taxable — selling LP tokens for underlying
-                # Liquidation: taxable — forced sale
                 result = calculator.consume_lots(
                     quantity_to_sell=tx_quantity,
                     proceeds_per_unit=tx_price,
                     disposed_at=tx_timestamp,
                 )
+
+                # India: no short/long distinction under 115BBH
+                if country == "IN":
+                    is_short_term = True
+                else:
+                    is_short_term = result["is_short_term"]
 
                 tax_event = TaxEvent(
                     user_id=user_id,
@@ -412,16 +415,13 @@ def calculate_with_method(
                     proceeds_usd=result["proceeds_usd"],
                     cost_basis_usd=result["cost_basis_usd"],
                     gain_loss_usd=result["gain_loss_usd"],
-                    is_short_term=result["is_short_term"],
+                    is_short_term=is_short_term,
                     acquired_at=result["acquired_at"],
                     disposed_at=result["disposed_at"],
                     sale_tx_id=tx.id,
                 )
                 tax_events.append(tax_event)
 
-            # BORROW / REPAY: no taxable events
-            # Borrow creates debt, not income. Repaying debt is not a disposal.
-            # If repaid with different tokens, that's a separate trade event.
             elif tx.tx_type in ("borrow", "repay"):
                 continue
 

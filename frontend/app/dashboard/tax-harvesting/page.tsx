@@ -4,6 +4,14 @@ import { useState, useEffect, useCallback } from 'react'
 import api from '@/lib/api'
 import { Card } from '@/components/ui/Card'
 
+interface UserProfile {
+  email: string
+  plan: string
+  country: string
+  financial_year_start: string
+  cost_basis_method: string
+}
+
 interface LossItem {
   token_symbol: string
   quantity: number
@@ -69,6 +77,7 @@ export default function TaxHarvestingPage() {
   const [report, setReport] = useState<HarvestingReport>(EMPTY_REPORT)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [userCountry, setUserCountry] = useState<string>('')
 
   const fetchReport = useCallback(async () => {
     setLoading(true)
@@ -85,6 +94,7 @@ export default function TaxHarvestingPage() {
 
   useEffect(() => {
     fetchReport()
+    api.get('/auth/me').then(r => setUserCountry(r.data.country)).catch(() => {})
   }, [fetchReport])
 
   const formatUSD = (v: number) =>
@@ -96,6 +106,22 @@ export default function TaxHarvestingPage() {
         <h1 className="text-2xl font-bold text-main">Tax-Loss Harvesting</h1>
         <p className="text-muted text-sm mt-1">Identify opportunities to offset gains and minimize your tax liability</p>
       </div>
+
+      {userCountry === 'IN' && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <span className="text-amber-400 text-lg">⚠</span>
+            <div>
+              <p className="text-sm font-semibold text-main">Not applicable for Indian users</p>
+              <p className="text-xs text-muted mt-1">
+                Per Section 115BBH of the Income Tax Act, losses from Virtual Digital Assets
+                cannot be set off against any income. Tax-loss harvesting strategies do
+                not provide tax benefits under the Indian tax regime.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading && (
         <div className="flex items-center justify-center py-12">

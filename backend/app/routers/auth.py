@@ -7,6 +7,7 @@ from app.services.auth_service import (
     authenticate_user,
     create_access_token,
     create_refresh_token,
+    get_current_user,
     get_password_hash,
     refresh_access_token,
 )
@@ -113,3 +114,17 @@ async def refresh_token(
     db: AsyncSession = Depends(get_db),
 ):
     return await refresh_access_token(db, token_data.refresh_token)
+
+
+@router.get("/me")
+async def get_current_user_profile(
+    current_user: User = Depends(get_current_user),
+):
+    """Get current user's profile information."""
+    return {
+        "email": current_user.email,
+        "plan": current_user.plan,
+        "country": current_user.country,
+        "financial_year_start": current_user.financial_year_start,
+        "cost_basis_method": current_user.cost_basis_method,
+    }

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from sqlalchemy import Column, String, DateTime, func, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy import DECIMAL
@@ -22,6 +23,7 @@ class Transaction(Base):
     price_usd = Column(DECIMAL(20, 8))
     value_usd = Column(DECIMAL(20, 8))
     fee_usd = Column(DECIMAL(20, 8))
+    tds_usd = Column(DECIMAL(20, 8), default=Decimal("0"))  # 1% TDS for Indian users (Section 194S)
     timestamp = Column(DateTime, nullable=False)
     raw_data = jsonb_column()
     created_at = Column(DateTime, default=func.now())

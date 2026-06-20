@@ -190,7 +190,8 @@ async def get_tax_summary(
             try:
                 events = calculate_with_method(
                     current_user.cost_basis_method,
-                    str(current_user.id), token_symbol, token_transactions
+                    str(current_user.id), token_symbol, token_transactions,
+                    country=current_user.country or "US",
                 )
                 tax_events.extend(events)
                 # Calculate token-level summary
@@ -225,10 +226,9 @@ async def get_tax_summary(
         long_term_total = sum(
             event.gain_loss_usd for event in tax_events if not event.is_short_term
         )
-        logger.info(
-            f"Tax summary generated for user {current_user.id}, FY {financial_year}: {len(tax_events)} events"
-        )
-        return {
+
+        # Build response
+        response = {
             "financial_year": financial_year,
             "total_gain_loss_usd": total_gain_loss,
             "short_term_gain_loss_usd": short_term_total,
@@ -241,6 +241,24 @@ async def get_tax_summary(
                 "end_date": end_date.isoformat(),
             },
         }
+
+        # India-specific tax calculation (Section 115BBH)
+        if current_user.country == "IN" and tax_events:
+            try:
+                from app.services.india_tax_service import calculate_india_tax_liability
+                usd_to_inr = await get_usd_to_inr_exchange_rate()
+                india_tax = await calculate_india_tax_liability(
+                    tax_events, transactions, db, str(current_user.id),
+                    financial_year, usd_to_inr,
+                )
+                response["india_tax"] = india_tax
+            except Exception as e:
+                logger.error(f"Error calculating India tax: {str(e)}", exc_info=True)
+
+        logger.info(
+            f"Tax summary generated for user {current_user.id}, FY {financial_year}: {len(tax_events)} events"
+        )
+        return response
     except HTTPException:
         raise
     except Exception as e:
@@ -303,7 +321,8 @@ async def generate_csv_report(
         for token_symbol, token_transactions in transactions_by_token.items():
             events = calculate_with_method(
                 current_user.cost_basis_method,
-                str(current_user.id), token_symbol, token_transactions
+                str(current_user.id), token_symbol, token_transactions,
+                country=current_user.country or "US",
             )
             tax_events.extend(events)
         if not tax_events:
@@ -624,7 +643,8 @@ async def generate_pdf_report(
         for token_symbol, token_transactions in transactions_by_token.items():
             events = calculate_with_method(
                 current_user.cost_basis_method,
-                str(current_user.id), token_symbol, token_transactions
+                str(current_user.id), token_symbol, token_transactions,
+                country=current_user.country or "US",
             )
             tax_events.extend(events)
         if tax_events:
@@ -842,7 +862,7 @@ async def generate_itr_report(
             "Cost of Acquisition (INR)",
             "Full Value of Consideration (INR)",
             "Capital Gains (INR)",
-            "Type of Capital Gains",
+            "TDS Deducted (INR)",  # NEW per Section 194S
             "Quantity of Digital Asset",
             "Blockchain/Platform",
             "Transaction Hash/ID",
@@ -850,6 +870,9 @@ async def generate_itr_report(
         ]
         csv_writer.writerow(headers)
         # Write tax event data in ITR VDA format
+        total_gains_inr = Decimal("0")
+        total_losses_inr = Decimal("0")
+        total_tds_inr = Decimal("0")
         for event in tax_events:
             # Get the sale transaction details
             sale_tx = await db.get(Transaction, event.sale_tx_id)
@@ -857,16 +880,25 @@ async def generate_itr_report(
             cost_acquisition_inr = round(event.cost_basis_usd * usd_to_inr_rate, 2)
             consideration_inr = round(event.proceeds_usd * usd_to_inr_rate, 2)
             capital_gains_inr = round(event.gain_loss_usd * usd_to_inr_rate, 2)
+            # Calculate TDS per Section 194S
+            tds_inr = Decimal("0")
+            if sale_tx and sale_tx.value_usd:
+                from app.services.india_tax_service import calculate_tds
+                tds_usd = calculate_tds(sale_tx.value_usd)
+                tds_inr = (tds_usd * usd_to_inr_rate).quantize(Decimal("0.01"))
+            # Track totals
+            if event.gain_loss_usd > Decimal("0"):
+                total_gains_inr += capital_gains_inr
+            else:
+                total_losses_inr += abs(capital_gains_inr)
+            total_tds_inr += tds_inr
             # Format dates as per Indian tax requirements (DD/MM/YYYY)
             acquisition_date = (
                 event.acquired_at.strftime("%d/%m/%Y") if event.acquired_at else ""
             )
             disposal_date = event.disposed_at.strftime("%d/%m/%Y")
-            # Determine capital gains type
-            capital_gains_type = "Short-term" if event.is_short_term else "Long-term"
             # Get blockchain/platform information
             blockchain = sale_tx.chain if sale_tx else "Unknown"
-            # Format blockchain name for ITR
             blockchain_map = {
                 "eth": "Ethereum",
                 "bnb": "BNB Chain",
@@ -876,19 +908,33 @@ async def generate_itr_report(
             blockchain_display = blockchain_map.get(blockchain, blockchain.capitalize())
             csv_writer.writerow(
                 [
-                    event.token_symbol,  # Description of Digital Asset
-                    acquisition_date,  # Date of Acquisition
-                    disposal_date,  # Date of Transfer/Disposal
-                    f"{cost_acquisition_inr:.2f}",  # Cost of Acquisition (INR)
-                    f"{consideration_inr:.2f}",  # Full Value of Consideration (INR)
-                    f"{capital_gains_inr:.2f}",  # Capital Gains (INR)
-                    capital_gains_type,  # Type of Capital Gains
-                    f"{event.quantity:.8f}",  # Quantity of Digital Asset
-                    blockchain_display,  # Blockchain/Platform
-                    sale_tx.tx_hash if sale_tx else "",  # Transaction Hash/ID
-                    financial_year,  # Financial Year
+                    event.token_symbol,
+                    acquisition_date,
+                    disposal_date,
+                    f"{cost_acquisition_inr:.2f}",
+                    f"{consideration_inr:.2f}",
+                    f"{capital_gains_inr:.2f}",
+                    f"{tds_inr:.2f}",  # TDS Deducted (INR)
+                    f"{event.quantity:.8f}",
+                    blockchain_display,
+                    sale_tx.tx_hash if sale_tx else "",
+                    financial_year,
                 ]
             )
+        # Add tax summary section at bottom
+        estimated_tax_inr = (total_gains_inr * Decimal("0.30")).quantize(Decimal("0.01"))
+        net_tax_due_inr = max(Decimal("0"), estimated_tax_inr - total_tds_inr)
+        csv_writer.writerow([])
+        csv_writer.writerow(["--- TAX SUMMARY ---"])
+        csv_writer.writerow(["Tax Regime", "Section 115BBH (30% flat on Virtual Digital Assets)"])
+        csv_writer.writerow(["Total Gains (INR)", f"{total_gains_inr:.2f}"])
+        csv_writer.writerow(["Total Losses (INR)", f"{total_losses_inr:.2f}"])
+        csv_writer.writerow(["Note", "Losses do NOT offset gains per Indian tax law"])
+        csv_writer.writerow(["Taxable Amount (INR)", f"{total_gains_inr:.2f}"])
+        csv_writer.writerow(["Tax Rate", "30%"])
+        csv_writer.writerow(["Estimated Tax (INR)", f"{estimated_tax_inr:.2f}"])
+        csv_writer.writerow(["Total TDS Deducted (INR)", f"{total_tds_inr:.2f}"])
+        csv_writer.writerow(["Net Tax Due (INR)", f"{net_tax_due_inr:.2f}"])
         csv_content = csv_buffer.getvalue()
         csv_buffer.close()
         # Return as downloadable file

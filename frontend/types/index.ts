@@ -100,6 +100,34 @@ export interface PortfolioSummary {
   transaction_count: number
 }
 
+export interface IndiaTaxSummary {
+  jurisdiction: string
+  tax_regime: string
+  financial_year: string
+  fx_rate_usd_to_inr: number
+  total_gains_usd: number
+  total_gains_inr: number
+  total_losses_usd: number
+  total_losses_inr: number
+  net_result_usd: number
+  taxable_amount_usd: number
+  taxable_amount_inr: number
+  tax_rate: number
+  tax_rate_display: string
+  estimated_tax_usd: number
+  estimated_tax_inr: number
+  tds_rate: number
+  tds_rate_display: string
+  total_tds_deducted_usd: number
+  total_tds_deducted_inr: number
+  net_tax_due_usd: number
+  net_tax_due_inr: number
+  loss_offsetting: string
+  loss_carry_forward: string
+  gain_event_count: number
+  loss_event_count: number
+}
+
 export interface TaxSummary {
   financial_year: string
   total_gain_loss_usd: number
@@ -119,6 +147,7 @@ export interface TaxSummary {
     start_date: string
     end_date: string
   }
+  india_tax?: IndiaTaxSummary
 }
 
 // Form types
