@@ -44,7 +44,7 @@ const plans = [
 ]
 
 /**
- * PricingSection — 3-column pricing matrix with Free / Starter / Pro cards.
+ * PricingSection — 4-column pricing matrix with Free / Starter / Pro / Enterprise cards.
  */
 export default function PricingSection() {
   return (
@@ -65,12 +65,60 @@ export default function PricingSection() {
         </div>
 
         {/* Pricing cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {plans.map((plan) => (
             <PricingCard key={plan.name} {...plan} />
           ))}
+
+          {/* Enterprise card — separate because feature set is different */}
+          <div className="price-card flex flex-col">
+            <div>
+              <h3 className="text-2xl font-bold text-main">Enterprise</h3>
+              <div className="mt-4 mb-2">
+                <span className="text-4xl font-bold text-main">Custom</span>
+              </div>
+              <p className="text-muted text-sm font-light">API ACCESS</p>
+            </div>
+
+            <div className="mt-2 mb-6">
+              <div className="font-mono text-[10px] tracking-widest text-indigo-400 uppercase">
+                EMBEDDED LICENSING
+              </div>
+            </div>
+
+            {/* Feature list */}
+            <div className="flex-1 space-y-3 text-sm">
+              <EnterpriseFeature label="Unlimited API calls" />
+              <EnterpriseFeature label="White-label tax engine" />
+              <EnterpriseFeature label="ITR VDA as JSON API" />
+              <EnterpriseFeature label="HMAC-signed webhooks" />
+              <EnterpriseFeature label="Priority support + SLA" />
+              <EnterpriseFeature label="Custom chain integrations" />
+            </div>
+
+            <a
+              href="mailto:taxchain@example.com"
+              className="btn btn-outline mt-8 w-full text-center"
+            >
+              Contact Us
+            </a>
+          </div>
         </div>
+
+        {/* Enterprise note */}
+        <p className="mt-10 text-center font-mono text-[10px] tracking-wider text-faint max-w-xl mx-auto leading-relaxed">
+          Enterprise clients include crypto exchanges, wallets, and fintech platforms needing embedded tax calculation.
+        </p>
       </div>
     </section>
+  )
+}
+
+function EnterpriseFeature({ label }: { label: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-muted">{label}</span>
+      <span className="text-emerald">✓</span>
+    </div>
   )
 }
