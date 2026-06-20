@@ -50,6 +50,18 @@ export default function Navbar() {
             Infrastructure
           </a>
           <a
+            href="#api"
+            className="font-mono text-xs tracking-widest text-muted hover:text-main transition-colors uppercase"
+          >
+            API
+          </a>
+          <a
+            href="#defi"
+            className="font-mono text-xs tracking-widest text-muted hover:text-main transition-colors uppercase"
+          >
+            DeFi
+          </a>
+          <a
             href="#pricing"
             className="font-mono text-xs tracking-widest text-muted hover:text-main transition-colors uppercase"
           >
@@ -60,18 +72,16 @@ export default function Navbar() {
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
           <a
-            href="https://github.com/ravikumarve/TaxChain"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/docs"
             className="btn btn-outline text-xs py-2 px-4"
           >
-            GitHub
+            View API Docs
           </a>
           <Link
-            href="/auth/login"
+            href="/auth/signup"
             className="btn btn-primary text-xs py-2 px-4"
           >
-            Connect Wallet
+            Start Free
           </Link>
         </div>
 
@@ -92,9 +102,12 @@ export default function Navbar() {
         <div className="md:hidden bg-panel border-t border-border-dim px-6 py-6 space-y-4">
           <a href="#compliance" onClick={() => setMobileOpen(false)} className="block font-mono text-xs tracking-widest text-muted hover:text-main uppercase">Compliance</a>
           <a href="#infrastructure" onClick={() => setMobileOpen(false)} className="block font-mono text-xs tracking-widest text-muted hover:text-main uppercase">Infrastructure</a>
+          <a href="#api" onClick={() => setMobileOpen(false)} className="block font-mono text-xs tracking-widest text-muted hover:text-main uppercase">API</a>
+          <a href="#defi" onClick={() => setMobileOpen(false)} className="block font-mono text-xs tracking-widest text-muted hover:text-main uppercase">DeFi</a>
           <a href="#pricing" onClick={() => setMobileOpen(false)} className="block font-mono text-xs tracking-widest text-muted hover:text-main uppercase">Pricing</a>
           <hr className="border-border-dim" />
-          <Link href="/auth/login" onClick={() => setMobileOpen(false)} className="block btn btn-primary text-xs text-center">Connect Wallet</Link>
+          <a href="/docs" onClick={() => setMobileOpen(false)} className="block btn btn-outline text-xs text-center mb-2">View API Docs</a>
+          <Link href="/auth/signup" onClick={() => setMobileOpen(false)} className="block btn btn-primary text-xs text-center">Start Free</Link>
         </div>
       )}
     </header>

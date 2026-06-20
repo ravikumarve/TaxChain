@@ -81,3 +81,11 @@ htmlcov/
 *.tgz
 *.tar.gz
 .envsitter/
+
+# Design artifacts (not part of the product)
+FRONTEND_REDESIGN_BLUEPRINT.md
+TAXCHAIN_VS_COMPETITORS.md
+TaxChain.html
+
+# Session artifacts
+session-*.md

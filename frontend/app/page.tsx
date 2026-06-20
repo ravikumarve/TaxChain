@@ -1,6 +1,7 @@
 import Navbar from '@/components/landing/Navbar'
 import HeroSection from '@/components/landing/HeroSection'
 import BentoMatrix from '@/components/landing/BentoMatrix'
+import ApiSection from '@/components/landing/ApiSection'
 import ArchitectureSection from '@/components/landing/ArchitectureSection'
 import PricingSection from '@/components/landing/PricingSection'
 import Footer from '@/components/landing/Footer'
@@ -16,6 +17,7 @@ export default function LandingPage() {
       <Navbar />
       <HeroSection />
       <BentoMatrix />
+      <ApiSection />
       <ArchitectureSection />
       <PricingSection />
       <Footer />

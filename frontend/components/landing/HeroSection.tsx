@@ -15,18 +15,17 @@ export default function HeroSection() {
           <div className="space-y-6 lg:space-y-8">
             <div className="mono-badge text-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald inline-block" />
-              MULTI-WALLET, MULTI-CHAIN SAAS
+              CRYPTO TAX ENGINE · REST API · INDIA ITR VDA
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-[5rem] font-bold leading-[1.1] tracking-tight max-w-[540px]">
               <span className="text-gradient">
-                Institutional-grade crypto tax engine.
+                India's crypto tax engine. For builders.
               </span>
             </h1>
 
             <p className="text-muted text-base sm:text-lg leading-relaxed max-w-[540px] font-light">
-              Connect your wallets. Let TaxChain handle FIFO cost basis,
-              multi-currency conversion, and jurisdiction-specific tax format generation.
+              A production-hardened FIFO/LIFO/HIFO calculation engine with REST API, 8-chain support, and India's only ITR Schedule VDA export. Built for developers, DeFi users, and high-net-worth portfolios.
             </p>
 
             <div className="flex flex-wrap gap-4">
