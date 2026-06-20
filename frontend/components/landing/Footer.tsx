@@ -41,9 +41,10 @@ export default function Footer() {
               Developers
             </h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="https://github.com/ravikumarve/TaxChain" target="_blank" rel="noopener noreferrer" className="text-muted hover:text-main transition-colors">GitHub</a></li>
-              <li><a href="#" className="text-muted hover:text-main transition-colors">API Docs</a></li>
-              <li><a href="#" className="text-muted hover:text-main transition-colors">Status</a></li>
+              <li><a href="#api" className="text-muted hover:text-main transition-colors">API Reference</a></li>
+              <li><a href="https://github.com/ravikumarve/TaxChain" target="_blank" rel="noopener noreferrer" className="text-muted hover:text-main transition-colors">GitHub Repository</a></li>
+              <li><a href="https://github.com/ravikumarve/TaxChain/issues" target="_blank" rel="noopener noreferrer" className="text-muted hover:text-main transition-colors">Issue Tracker</a></li>
+              <li><a href="https://github.com/ravikumarve/TaxChain/discussions" target="_blank" rel="noopener noreferrer" className="text-muted hover:text-main transition-colors">Discussions</a></li>
             </ul>
           </div>
 
@@ -63,7 +64,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 pt-6 border-t border-border-dim flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-faint text-xs font-mono">
-            © 2026 TAXCHAIN. CRYPTO TAX COMPLIANCE, DONE RIGHT.
+            &copy; 2026 TAXCHAIN &middot; A <span className="text-indigo-400">0xMATRIX</span> PRODUCT
           </p>
           <div className="flex items-center gap-2 text-xs text-emerald font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald inline-block animate-pulse" />
