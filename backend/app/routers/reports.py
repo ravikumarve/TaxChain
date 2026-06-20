@@ -166,6 +166,11 @@ async def get_tax_summary(
                 "long_term_gain_loss_usd": Decimal("0"),
                 "token_breakdown": [],
                 "transaction_count": 0,
+                "tax_event_count": 0,
+                "date_range": {
+                    "start_date": start_date.isoformat(),
+                    "end_date": end_date.isoformat(),
+                },
                 "message": "No transactions found for this financial year",
             }
         # Group transactions by token symbol
