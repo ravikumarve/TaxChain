@@ -25,7 +25,7 @@ export default function BentoMatrix() {
             <span className="text-gradient">developer velocity.</span>
           </h2>
           <p className="text-muted text-lg max-w-2xl mx-auto font-light">
-            From FIFO cost basis to jurisdiction-specific tax exports — TaxChain 
+            From multi-method cost basis to jurisdiction-specific tax exports — TaxChain 
             handles the complexity so you don&apos;t have to.
           </p>
         </div>
@@ -53,22 +53,14 @@ export default function BentoMatrix() {
           </BentoNode>
 
           {/* 02 — Methodology (span-4) */}
-          <BentoNode span={4} index="02" label="METHODOLOGY" title="Strict FIFO">
-            <p>First-In-First-Out cost basis matching with full lot-level traceability.</p>
-            <ul className="text-xs space-y-2 mt-4 font-mono">
-              <li className="flex items-center gap-2">
-                <span className="text-emerald">→</span> Every BUY creates a tracked lot
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-emerald">→</span> Every SELL consumes oldest lots
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-emerald">→</span> Gain/Loss = proceeds − cost basis
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-emerald">→</span> Short-term: held &lt; 365 days
-              </li>
-            </ul>
+          <BentoNode span={4} index="02" label="METHODOLOGY" title="4 Accounting Methods">
+            <p>Switch between FIFO, LIFO, HIFO, and Average Cost at any time. All 6 export formats recalculate instantly. HIFO minimizes your taxable gains — unique to TaxChain.</p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <span className="chain-badge text-xs text-indigo-300 border-indigo-500/30">FIFO</span>
+              <span className="chain-badge text-xs text-indigo-300 border-indigo-500/30">LIFO</span>
+              <span className="chain-badge text-xs text-gain border-emerald/30">HIFO</span>
+              <span className="chain-badge text-xs text-indigo-300 border-indigo-500/30">AVG COST</span>
+            </div>
           </BentoNode>
 
           {/* 03 — Pricing Oracle (span-6) */}
