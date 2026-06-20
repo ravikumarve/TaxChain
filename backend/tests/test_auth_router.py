@@ -9,12 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import FastAPI
 
-from app.routers.auth import router, auth_limiter
+from app.routers.auth import router
 from app.database import get_db
 from app.models.user import User
-
-# Disable rate limiting for tests
-auth_limiter.enabled = False
 
 # Create a test app with just the auth router
 test_app = FastAPI()

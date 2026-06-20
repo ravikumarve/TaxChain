@@ -20,7 +20,7 @@ const levelColors: Record<string, string> = {
 
 /**
  * TaxTerminal — Glass card with FIFO engine terminal log.
- * Fixed width on desktop (460px), full-width on mobile with no rotation.
+ * Matches original TaxChain.html spacing: 12px margin-right after time and level.
  */
 export default function TaxTerminal() {
   const [hovered, setHovered] = useState(false)
@@ -39,26 +39,36 @@ export default function TaxTerminal() {
           : 'rotate(0deg) translateY(0px)',
       }}
     >
-      <div className="flex items-center gap-3 mb-5">
+      {/* Header with traffic lights */}
+      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-border-dim">
         <div className="flex gap-1.5 shrink-0">
           <span className="w-2.5 h-2.5 rounded-full bg-loss" />
           <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
           <span className="w-2.5 h-2.5 rounded-full bg-emerald" />
         </div>
-        <span className="font-mono text-[10px] tracking-widest text-muted uppercase">
+        <span className="font-mono text-[10px] tracking-widest text-faint uppercase flex-1">
           Tax Engine — FIFO v2.1.4
         </span>
       </div>
+
+      {/* Log lines — matching original HTML spacing */}
       <div className="font-mono space-y-2">
         {logLines.map((line, i) => (
-          <div key={i} className="flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] leading-5">
-            <span className="text-faint shrink-0 w-14 hidden sm:inline">{line.time}</span>
-            <span className={`tracking-wider uppercase whitespace-nowrap shrink-0 ${levelColors[line.level] || 'text-muted'}`}>
+          <div key={i} className="flex items-baseline text-[11px] leading-6">
+            <span className="text-faint shrink-0 hidden sm:inline" style={{ marginRight: 12 }}>
+              {line.time}
+            </span>
+            <span
+              className={`tracking-wider uppercase shrink-0 ${levelColors[line.level] || 'text-muted'}`}
+              style={{ marginRight: 12 }}
+            >
               [{line.level}]
             </span>
-            <span className="text-main/80 break-words min-w-0 leading-snug">{line.msg}</span>
+            <span className="text-main/80 break-words min-w-0">{line.msg}</span>
           </div>
         ))}
+
+        {/* Footer status */}
         <div className="flex items-center gap-2 text-[11px] text-emerald mt-3 pt-3 border-t border-border-dim">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald animate-pulse shrink-0" />
           ENGINE RUNNING — 6 WATCHERS

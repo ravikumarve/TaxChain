@@ -170,7 +170,10 @@ async def global_exception_handler(request: Request, exc: Exception):
     error_response = handle_general_error(exc, "global_exception_handler")
     return JSONResponse(
         status_code=error_response.status_code,
-        content={**error_response.detail, "request_id": request_id},
+        content={
+            **({"detail": error_response.detail} if isinstance(error_response.detail, str) else error_response.detail),
+            "request_id": request_id,
+        },
     )
 
 
