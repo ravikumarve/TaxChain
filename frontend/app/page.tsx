@@ -5,6 +5,7 @@ import ApiSection from '@/components/landing/ApiSection'
 import ArchitectureSection from '@/components/landing/ArchitectureSection'
 import DeFiSection from '@/components/landing/DeFiSection'
 import PricingSection from '@/components/landing/PricingSection'
+import TrustStrip from '@/components/landing/TrustStrip'
 import Footer from '@/components/landing/Footer'
 
 /**
@@ -22,6 +23,7 @@ export default function LandingPage() {
       <ArchitectureSection />
       <DeFiSection />
       <PricingSection />
+      <TrustStrip />
       <Footer />
     </>
   )
