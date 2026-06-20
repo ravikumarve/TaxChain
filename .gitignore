@@ -80,3 +80,4 @@ htmlcov/
 # Misc
 *.tgz
 *.tar.gz
+.envsitter/
