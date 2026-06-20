@@ -32,12 +32,12 @@ client = TestClient(test_app, raise_server_exceptions=False)
 
 @pytest.fixture
 def mock_user():
-    return User(id=uuid4(), email="test@example.com", plan="pro", financial_year_start="04-01")
+    return User(id=uuid4(), email="test@example.com", plan="pro", financial_year_start="04-01", cost_basis_method="fifo")
 
 
 @pytest.fixture
 def mock_free_user():
-    return User(id=uuid4(), email="free@example.com", plan="free", financial_year_start="04-01")
+    return User(id=uuid4(), email="free@example.com", plan="free", financial_year_start="04-01", cost_basis_method="fifo")
 
 
 @pytest.fixture
@@ -78,7 +78,7 @@ def test_get_tax_summary_success(mock_user, mock_tx):
     override_deps(mock_user, mock_db)
     mock_db.execute.return_value.scalars.return_value.all.return_value = [mock_tx]
 
-    with patch("app.routers.reports.calculate_fifo") as mock_calc:
+    with patch("app.routers.reports.calculate_with_method") as mock_calc:
         mock_calc.return_value = [
             TaxEvent(id=uuid4(), user_id=mock_user.id, token_symbol="ETH",
                      quantity=Decimal("1.0"), proceeds_usd=Decimal("2000.0"),
@@ -180,7 +180,7 @@ def test_generate_csv_report(mock_user, mock_tx):
     mock_db.execute.return_value.scalars.return_value.all.return_value = [mock_tx]
     mock_db.get.return_value = mock_tx
 
-    with patch("app.routers.reports.calculate_fifo") as mock_calc:
+    with patch("app.routers.reports.calculate_with_method") as mock_calc:
         tax_event = TaxEvent(
             id=uuid4(), user_id=mock_user.id, token_symbol="ETH",
             quantity=Decimal("1.0"), proceeds_usd=Decimal("2000.0"),

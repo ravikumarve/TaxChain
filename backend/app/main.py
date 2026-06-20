@@ -20,7 +20,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, wallets, transactions, reports, payments, webhooks
+from app.routers import auth, wallets, transactions, reports, payments, webhooks, settings as settings_router
 from app.utils.error_handler import ErrorResponse, handle_general_error
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -189,6 +189,7 @@ app.include_router(
 app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
 app.include_router(webhooks.router, prefix="/api/webhooks", tags=["webhooks"])
+app.include_router(settings_router.router, prefix="/api/settings", tags=["settings"])
 
 
 # ---------------------------------------------------------------------------

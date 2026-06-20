@@ -13,6 +13,7 @@ class User(Base):
     plan = Column(String(20), default="free")
     country = Column(String(10), default="IN")
     financial_year_start = Column(String(5), default="04-01")
+    cost_basis_method = Column(String(10), default="fifo")  # fifo | lifo | hifo | avg_cost
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 

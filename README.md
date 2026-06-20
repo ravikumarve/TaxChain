@@ -7,7 +7,7 @@
 
 <p align="center">
   <strong>Multi-wallet, Multi-chain Crypto Tax & Portfolio P&L SaaS</strong><br>
-  <em>Production-grade • FIFO Cost Basis • 8 Blockchains • Global Tax Formats</em>
+  <em>Production-grade • 4 Cost Basis Methods • 8 Blockchains • DeFi Support • Global Tax Formats</em>
 </p>
 
 <p align="center">
@@ -23,9 +23,14 @@
 
 ## 📋 Overview
 
-**TaxChain** calculates capital gains, cost basis, and generates professional tax reports across 8 blockchains. Built with financial-grade precision — `Decimal` everywhere, FIFO methodology, full audit trail.
+**TaxChain** calculates capital gains, cost basis, and generates professional tax reports across 8 blockchains. Supports portfolio tracking, DeFi positions, manual transaction editing, and 4 accounting methods. Built with financial-grade precision — `Decimal` everywhere, FIFO/LIFO/HIFO/Average Cost, full audit trail.
 
 ### What makes it different?
+- **4 accounting methods** — FIFO, LIFO, HIFO, and Average Cost (switch anytime)
+- **Portfolio dashboard** — Real-time P&L, allocation charts, top movers
+- **In-memory ledger** — Manual transaction editor with CSV import & error reconciliation
+- **Tax-loss harvesting** — Wash sale detection, loss optimization recommendations
+- **DeFi support** — LP positions, lending, yield farming (Uniswap, AAVE, Curve)
 - **India-first** — ITR Schedule VDA export (unique differentiator)
 - **8 chains** — ETH, BNB, Polygon, Arbitrum, Optimism, Base, Solana, Bitcoin
 - **Global tax formats** — US IRS 8949, UK HMRC, Australia ATO, India ITR VDA
@@ -40,12 +45,15 @@
 |-------|--------|----------------|
 | **Phase 1 — Core Engine** | ✅ Complete | PostgreSQL schema, ORM models, FIFO tax calculator, 16+ test files |
 | **Phase 2 — Backend API** | ✅ Complete | Auth, wallets, transactions, tax summary, CSV/PDF/ITR reports |
-| **Phase 3 — Frontend** | ✅ Complete (v1) | Dashboard, wallet management, tax/export pages, pricing/landing pages |
-| **Phase 4 — Tax & Export** | ✅ Complete | CSV, PDF, ITR Schedule VDA, FIFO with cost basis lot persistence |
+| **Phase 3 — Frontend** | ✅ Complete (v2) | Dark void theme, dashboard, wallet mgmt, tax/export/pricing/landing pages |
+| **Phase 4 — Tax & Export** | ✅ Complete | CSV, PDF, ITR VDA, IRS 8949, HMRC, ATO, FIFO cost basis lot persistence |
 | **Phase 5 — Payments** | ✅ Complete | Razorpay (India) + Lemon Squeezy (global), plan gates, webhooks |
-| **Tier 1 — Hardening** | ✅ Complete | DB pooling, retry logic, auth rate limiting, secrets validation, webhook idempotency |
-| **Tier 2 — Scale** | ✅ Complete | Background jobs (APScheduler), structured logging, Sentry, request ID tracing |
-| **Tier 3 — Global** | ✅ Complete | 8 chains, multi-currency, IRS/HMRC/ATO tax formats, exchange rate service |
+| **Tier 1-3 — Hardening** | ✅ Complete | DB pooling, rate limiting, background jobs, structured logging, Sentry |
+| **Sprint 6 — Portfolio Dashboard** | ✅ Complete | P&L tracking, allocation charts (chain/token), Recharts area chart, top movers |
+| **Sprint 7 — In-Memory Ledger** | ✅ Complete | Manual tx CRUD, CSV import with preview, error reconciliation |
+| **Sprint 8 — Accounting Methods** | ✅ Complete | FIFO, LIFO, HIFO, Average Cost — user-selectable with full recalc |
+| **Sprint 9 — Tax-Loss Harvesting** | ✅ Complete | Wash sale detection (30-day rule), realized loss analysis, recommendations |
+| **Sprint 10 — DeFi Support** | ✅ Complete | LP positions, lending/borrow, yield farm tracking, 6 new tx types |
 
 ---
 
@@ -64,6 +72,19 @@
 
 ---
 
+## 📊 Accounting Methods
+
+| Method | Description | Best For |
+|--------|------------|----------|
+| **FIFO** (Default) | First In, First Out — Oldest lots sold first | Most jurisdictions (US, UK, AU) |
+| **LIFO** | Last In, First Out — Newest lots sold first | Higher cost basis → lower gains |
+| **HIFO** | Highest Cost, First Out — Highest-cost lots sold first | Minimizing taxable gains |
+| **Avg Cost** | Average Cost — Smooths cost across all lots | Simplicity (not accepted in all jurisdictions) |
+
+Users can switch methods anytime via Settings. All 6 export formats respect the selected method.
+
+---
+
 ## 📄 Tax Report Formats
 
 | Format | Jurisdiction | Plan | Description |
@@ -77,27 +98,48 @@
 
 ---
 
+## 🧮 DeFi Transaction Types
+
+| Type | Description | Tax Treatment |
+|------|------------|---------------|
+| `trade` | Token swap on DEX | Taxable (gain/loss realized) |
+| `lp_deposit` | Liquidity pool deposit | Not taxable (trade for LP tokens) |
+| `lp_withdraw` | Liquidity pool withdrawal | Taxable (LP tokens → underlying) |
+| `borrow` | Borrowing assets (e.g. AAVE) | Not taxable (debt, not income) |
+| `repay` | Repaying borrowed assets | Not taxable |
+| `yield_farm` | Yield farming / vault deposit | Not taxable on deposit |
+| `liquidation` | Liquidation event | Taxable |
+| `staking` | Staking rewards | Taxable as income at FMV |
+| `airdrop` | Free token distribution | Taxable as income at FMV |
+
+**Supported Protocols:** Uniswap V2/V3, AAVE V2/V3, Compound, Curve, Lido, PancakeSwap, QuickSwap, Camelot, Velodrome, Aerodrome
+
+---
+
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    TaxChain Backend (FastAPI)                 │
-├──────────────┬──────────────┬───────────────┬───────────────┤
-│  Auth        │  Wallets     │  Transactions │  Reports      │
-│  /api/auth   │  /api/wallets│  /api/txs     │  /api/reports │
-├──────────────┼──────────────┼───────────────┼───────────────┤
-│  Payments    │  Webhooks    │  Tax Engine   │  Scheduler    │
-│  /api/payments│  /api/wh    │  FIFO Calc    │  APScheduler  │
-├──────────────┴──────────────┴───────────────┴───────────────┤
-│  Services: Chain Sync │ Price Engine │ Exchange Rate        │
-│  ├── Etherscan/BscScan/PolygonScan/Arbiscan/etc.           │
-│  ├── CoinGecko (cached, 10k entries)                       │
-│  └── open.er-api.com (live FX rates)                       │
-├─────────────────────────────────────────────────────────────┤
-│  Database: PostgreSQL / SQLite (SQLAlchemy 2.0 + Alembic)   │
-│  └── 6 tables: users, wallets, transactions, cost_basis,   │
-│                tax_events, subscriptions                    │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                     TaxChain Backend (FastAPI)                         │
+├──────────────┬──────────────┬───────────────┬───────────────────────┤
+│  Auth        │  Wallets     │  Transactions │  Reports              │
+│  /api/auth   │  /api/wallets│  /api/txs     │  /api/reports         │
+├──────────────┼──────────────┼───────────────┼───────────────────────┤
+│  Payments    │  Webhooks    │  Settings     │  Tax Loss Harvesting  │
+│  /api/payments│  /api/wh    │  /api/settings│  /api/reports/tax-loss│
+├──────────────┴──────────────┴───────────────┴───────────────────────┤
+│  Core Services:                                                      │
+│  ├── Tax Engine ─── 4 calculators: FIFO / LIFO / HIFO / Avg Cost    │
+│  ├── DeFi Categorizer ─── Uniswap, AAVE, Curve, Lido protocol detection
+│  ├── DeFi Position Tracker ─── LP, lending, yield farm aggregation   │
+│  ├── Chain Sync ─── Etherscan/BscScan/PolygonScan/Arbiscan/etc.     │
+│  ├── Price Engine ─── CoinGecko (cached, 10k entries)               │
+│  └── Exchange Rate ─── open.er-api.com (live FX, 8 currencies)      │
+├──────────────────────────────────────────────────────────────────────┤
+│  Database: PostgreSQL / SQLite (SQLAlchemy 2.0 + Alembic migrations) │
+│  └── 6 tables: users, wallets, transactions, cost_basis_lots,        │
+│                tax_events, subscriptions                              │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -108,13 +150,15 @@
 # Backend
 cd backend
 cp .env.example .env        # Edit with your API keys
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 python create_tables.py
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 
 # Frontend (separate terminal)
 cd frontend
-cp .env.example .env.local
+cp .env.example .env.local  # Edit NEXT_PUBLIC_API_URL if needed
 npm install
 npm run dev
 ```
@@ -123,11 +167,11 @@ npm run dev
 
 ## 💰 Pricing
 
-| Plan | Price | Wallets | Chains | Exports |
-|------|-------|---------|--------|---------|
-| **Free** | $0 | 1 | ETH | ❌ |
-| **Starter** | $9/mo (₹749) | 3 | ETH, BNB, Polygon, Arbitrum | CSV, IRS, HMRC, ATO |
-| **Pro** | $19/mo (₹1,599) | Unlimited | All 8 chains | All formats + ITR VDA |
+| Plan | Price | Wallets | Chains | Exports | DeFi |
+|------|-------|---------|--------|---------|------|
+| **Free** | $0 | 1 | ETH | ❌ | ❌ |
+| **Starter** | $9/mo (₹749) | 3 | ETH, BNB, Polygon, Arbitrum | CSV, IRS, HMRC, ATO | ❌ |
+| **Pro** | $19/mo (₹1,599) | Unlimited | All 8 chains | All formats + ITR VDA | ✅ Full DeFi |
 
 ---
 
@@ -147,12 +191,14 @@ npm run dev
 | Layer | Technology |
 |-------|-----------|
 | **Backend** | Python 3.12+, FastAPI, SQLAlchemy 2.0, Alembic |
-| **Frontend** | Next.js 14 (App Router), Tailwind CSS, Zustand, Axios |
+| **Frontend** | Next.js 14 (App Router), Tailwind CSS, Recharts, Axios |
 | **Database** | PostgreSQL 15+ (production), SQLite (dev) |
 | **Sync** | APScheduler (auto-sync every 6h) |
+| **Accounting** | FIFO / LIFO / HIFO / Average Cost calculators |
 | **Payments** | Razorpay (IN) + Lemon Squeezy (global) |
 | **Prices** | CoinGecko (cached, 10k entries) |
-| **FX Rates** | open.er-api.com (live, with fallback) |
+| **FX Rates** | open.er-api.com (live, with fallback, 8 currencies) |
+| **DeFi Protocols** | Uniswap V2/V3, AAVE, Compound, Curve, Lido, PancakeSwap, QuickSwap, Camelot, Velodrome, Aerodrome |
 | **Monitoring** | Sentry, structured logging, request ID tracing |
 | **Infra** | Render (API) + Vercel (frontend) + Supabase (DB) |
 

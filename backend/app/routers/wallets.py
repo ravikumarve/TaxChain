@@ -519,3 +519,32 @@ async def get_wallet_status(
         "transaction_count": tx_count,
         "status": "synced" if wallet.last_synced_at else "pending",
     }
+
+
+@router.get("/defi-positions")
+async def get_defi_positions(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Aggregate DeFi positions across all user wallets.
+    Returns active liquidity pools, lending positions, and yield farms.
+    """
+    from app.services.defi_positions import DeFiPositionTracker
+
+    try:
+        lp_positions = await DeFiPositionTracker.get_lp_positions(db, str(current_user.id))
+        lending = await DeFiPositionTracker.get_lending_positions(db, str(current_user.id))
+        yield_farms = await DeFiPositionTracker.get_yield_farm_positions(db, str(current_user.id))
+
+        return {
+            "lp_positions": lp_positions,
+            "lending": lending,
+            "yield_farms": yield_farms,
+            "total_positions": len(lp_positions) + lending["total_active_borrows"] + len(yield_farms),
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching DeFi positions: {str(e)}",
+        )

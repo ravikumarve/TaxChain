@@ -15,6 +15,7 @@ from app.constants import (
     EVM_CHAINS, CHAIN_SOLANA, CHAIN_BITCOIN,
     BTC_EXPLORER_URL, CHAIN_NATIVE_COINGECKO,
 )
+from app.services.defi_categoriser import DeFiCategorizer
 
 
 class ChainSyncError(Exception):
@@ -282,6 +283,11 @@ def _transform_bitcoin_tx(tx: Dict[str, Any]) -> Dict[str, Any]:
 # ── Type Determination ─────────────────────────────────────────────────────
 
 def _determine_evm_tx_type(tx: Dict[str, Any]) -> str:
+    # Check DeFi categorizer first
+    defi_type = DeFiCategorizer.classify(tx, tx.get("chain", "eth"))
+    if defi_type:
+        return defi_type
+
     if tx.get("contractAddress"):
         return "token_transfer" if tx.get("value") == "0" else "token_swap"
     elif tx.get("isError") == "1":

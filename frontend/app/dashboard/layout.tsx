@@ -129,8 +129,11 @@ export default function DashboardLayout({
               { href: '/dashboard', label: 'Dashboard' },
               { href: '/dashboard/wallets', label: 'Wallets' },
               { href: '/dashboard/transactions', label: 'Transactions' },
+              { href: '/dashboard/ledger', label: 'Ledger' },
               { href: '/dashboard/tax', label: 'Tax Report' },
+              { href: '/dashboard/tax-harvesting', label: 'Tax Harvesting' },
               { href: '/dashboard/reports', label: 'Export' },
+              { href: '/dashboard/settings', label: 'Settings' },
             ].map((item) => (
               <li key={item.href}>
                 <a

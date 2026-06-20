@@ -1,9 +1,6 @@
 import logging
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import text
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from sqlalchemy.exc import OperationalError, TimeoutError
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -38,31 +35,16 @@ async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False
 
 
 async def get_db():
-    """Yield an AsyncSession with retry logic for connection failures.
+    """Yield an AsyncSession for FastAPI's Depends() injection.
 
-    Note: Must NOT use @retry decorator — tenacity breaks async generator
-    detection (inspect.isasyncgenfunction returns False), which prevents
-    FastAPI's Depends() from properly resolving the yield.
+    Connection retries are handled by the engine's pool_pre_ping setting.
+    No manual retry loop — Python 3.12 async generators with try/except/yield
+    trigger RuntimeError("generator didn't stop after athrow()") on cleanup.
     """
-    import asyncio
-
-    last_error = None
-    for attempt in range(1, 4):  # 3 attempts
-        session = None
+    async with async_session() as session:
         try:
-            async with async_session() as session:
-                await session.execute(text("SELECT 1"))
-                yield session
-                await session.commit()
-            return  # success, exit generator
-        except (OperationalError, TimeoutError) as e:
-            last_error = e
-            logger.warning(f"DB connection attempt {attempt}/3 failed: {e}")
-            if attempt < 3:
-                await asyncio.sleep(min(2**attempt, 10))
+            yield session
+            await session.commit()
         except Exception:
-            if session is not None:
-                await session.rollback()
+            await session.rollback()
             raise
-
-    raise last_error or OperationalError("All database connection attempts failed")

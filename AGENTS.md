@@ -1066,6 +1066,84 @@ NEXT_PUBLIC_LEMONSQUEEZY_STORE_ID=
 *All agents read this before any task. No exceptions.*
 *When instructions conflict, this file wins.*
 
+### 2026-06-20 16:00 — Sprints 8+9+10: Accounting Methods + Tax-Loss Harvesting + DeFi Support
+**Agent:** orchestrator
+**State:** Success
+**Summary:** All three remaining feature sprints complete. 4 cost basis methods, tax-loss harvesting report with wash sale detection, and full DeFi transaction support across 6 chains.
+
+---
+
+### Sprint 8 — More Accounting Methods (LIFO, HIFO, Avg Cost) ✅
+**Files Modified/Created:**
+- `backend/app/models/user.py` — added `cost_basis_method` column (fifo/lifo/hifo/avg_cost)
+- `backend/app/services/tax_engine.py` — refactored: abstract base `CostBasisCalculator`, 4 subclasses (FIFO/LIFO/HIFO/AvgCost), factory `get_calculator()`, `calculate_with_method()` dispatcher
+- `backend/app/routers/settings.py` — NEW: `GET /settings/cost-basis-method` + `PUT /settings/cost-basis-method` with full recalc
+- `backend/app/routers/reports.py` — all 6 export endpoints now call `calculate_with_method(method, ...)` instead of hardcoded FIFO
+- `frontend/app/dashboard/settings/page.tsx` — NEW: 4 radio cards with explanations, confirmation toast, recalculating state
+- `frontend/app/dashboard/layout.tsx` — added "Settings" nav link
+- `backend/alembic/versions/002_add_cost_basis_method.py` — NEW: DB migration
+
+### Sprint 9 — Tax-Loss Harvesting Report ✅
+**Files Created/Modified:**
+- `backend/app/services/tax_loss_harvesting.py` — NEW: `TaxLossHarvestingReport` class with realized loss analysis, wash sale detection (30-day rule), ranked recommendations, expiring loss detection
+- `backend/app/routers/reports.py` — added `GET /reports/tax-loss-harvesting` endpoint
+- `frontend/app/dashboard/tax-harvesting/page.tsx` — NEW: summary banner, realized losses table, wash sale cards, recommendations list, expiring losses section
+- `frontend/app/dashboard/layout.tsx` — added "Tax Harvesting" nav link
+
+### Sprint 10 — DeFi Transaction Support ✅
+**Files Created/Modified:**
+- `backend/app/services/defi_categoriser.py` — NEW: `DeFiCategorizer` with 6-chain protocol addresses + method signatures for Uniswap/AAVE/Curve
+- `backend/app/services/defi_positions.py` — NEW: `DeFiPositionTracker` with LP/lending/yield farm position aggregation
+- `backend/app/services/chain_sync.py` — integrated `DeFiCategorizer.classify()` in EVM tx type detection
+- `backend/app/services/tax_engine.py` — extended for DeFi types (lp_deposit/yield_farm=buy, lp_withdraw/liquidation=taxable, borrow/repay=no tax event)
+- `backend/app/routers/transactions.py` — added 6 DeFi types to `VALID_TX_TYPES`
+- `backend/app/routers/wallets.py` — added `GET /wallets/defi-positions` endpoint
+- `frontend/app/dashboard/page.tsx` — added DeFi Positions section (LP/lending/yield farm cards)
+- `frontend/app/dashboard/ledger/page.tsx` — added 4th "DeFi Transactions" tab
+
+### Build Status
+- **Frontend:** 15/15 pages, 0 errors (87.5 kB shared JS)
+- **Backend:** 143 passed, 8 skipped, 0 failures
+- **DB Migration:** `002_add_cost_basis_method` created and applied
+
+---
+
+### 2026-06-20 14:30 — Sprint 7: In-Memory Ledger Complete
+**Agent:** orchestrator
+**State:** Success
+**Summary:** Full transaction editor built — manual CRUD, CSV import with preview, error reconciliation. 5 new backend endpoints, 3 new frontend components, 13/13 pages building, 143/143 tests passing.
+
+**Backend — 5 New Endpoints in `transactions.py`:****
+- `POST /api/transactions/manual` — Create manual transaction (auto-generates `manual_<uuid>` hash, creates virtual "Manual Entry" wallet per chain)
+- `PUT /api/transactions/{tx_id}` — Update manual tx (403 on blockchain-synced txs)
+- `DELETE /api/transactions/{tx_id}` — Delete manual tx only (403 on synced)
+- `POST /api/transactions/csv-preview` — Parse CSV, return preview with per-row validation
+- `POST /api/transactions/csv-commit` — Parse + save valid CSV rows as manual transactions
+- `GET /api/transactions/reconcile` — 4-category issue analysis (missing_price, unknown_token, unclassified_type, duplicate_hash)
+
+**Frontend — 3 New Components:**
+- `frontend/components/ledger/AddTransactionModal.tsx` — 10-field form modal (chain/type/token/qty/price/value/fee/date/notes/address)
+- `frontend/components/ledger/CsvImportPanel.tsx` — Drag-and-drop CSV upload with preview table (green/yellow/red row highlighting)
+- `frontend/components/ledger/ReconciliationPanel.tsx` — Expandable issue categories with "Fix" button per tx
+- `frontend/app/dashboard/ledger/page.tsx` — 3-tab layout: Ledger | CSV Import | Reconciliation
+- Sidebar: "Ledger" nav link added between Transactions and Tax Report
+- `api.ts`: 6 new methods added to `transactionsApi`
+
+**Pydantic Schema Created:**
+- `backend/app/schemas/transaction.py` — ManualTransactionCreate + ManualTransactionUpdate
+
+**Build Status:**
+- Frontend: 13/13 pages, 0 errors (Ledger: 7.39 kB / 117 kB first load JS)
+- Backend: 143 passed, 8 skipped, 0 failures
+
+**Next Turn Directive:**
+- Sprint 8: More Accounting Methods (LIFO, HIFO, Avg Cost)
+- Sprint 9: Tax-Loss Harvesting Report
+- Sprint 10: DeFi Transaction Support
+- Or Production Deployment (Vercel + Render + Supabase)
+
+---
+
 ### 2026-06-20 12:30 — Competitive Analysis + Bug-Fix Sprint
 **Agent:** orchestrator
 **State:** Success
@@ -1086,8 +1164,10 @@ NEXT_PUBLIC_LEMONSQUEEZY_STORE_ID=
 - Unique moats: India ITR VDA, 8 fiat currencies, dark void theme, modern stack
 
 **Next Turn Directive:**
-- Start Sprint 6: Portfolio Dashboard (charts, allocation, unrealized P&L)
-- Or Sprint 7: In-Memory Ledger (transaction editor + CSV import + error reconciliation)
+- Production Deployment: Vercel (frontend) + Render (backend) + Supabase (DB)
+- Sprint 11: PWA + Mobile Optimization
+- Sprint 12: More Chains (Avalanche, Fantom, zkSync, Cronos) + Annual Pricing ($49-$99/yr)
+- Sprint 13: Gumroad/AppSumo Lifetime Deal ($79)
 
 ---
 

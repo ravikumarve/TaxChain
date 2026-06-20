@@ -14,7 +14,8 @@ from app.services.auth_service import get_current_user
 from app.models.user import User
 from app.models.transaction import Transaction
 from app.models.tax_event import TaxEvent
-from app.services.tax_engine import calculate_fifo
+from app.services.tax_engine import calculate_fifo, calculate_with_method
+from app.services.tax_loss_harvesting import TaxLossHarvestingReport
 from app.utils.error_handler import (
     handle_database_error,
     handle_external_api_error,
@@ -187,7 +188,8 @@ async def get_tax_summary(
         token_breakdown = []
         for token_symbol, token_transactions in transactions_by_token.items():
             try:
-                events = calculate_fifo(
+                events = calculate_with_method(
+                    current_user.cost_basis_method,
                     str(current_user.id), token_symbol, token_transactions
                 )
                 tax_events.extend(events)
@@ -296,10 +298,11 @@ async def generate_csv_report(
                 if tx.token_symbol not in transactions_by_token:
                     transactions_by_token[tx.token_symbol] = []
                 transactions_by_token[tx.token_symbol].append(tx)
-        # Calculate tax events for each token
+        # Calculate tax events for each token using user's cost basis method
         tax_events: List[TaxEvent] = []
         for token_symbol, token_transactions in transactions_by_token.items():
-            events = calculate_fifo(
+            events = calculate_with_method(
+                current_user.cost_basis_method,
                 str(current_user.id), token_symbol, token_transactions
             )
             tax_events.extend(events)
@@ -616,10 +619,11 @@ async def generate_pdf_report(
                 if tx.token_symbol not in transactions_by_token:
                     transactions_by_token[tx.token_symbol] = []
                 transactions_by_token[tx.token_symbol].append(tx)
-        # Calculate tax events for each token
+        # Calculate tax events for each token using user's cost basis method
         tax_events: List[TaxEvent] = []
         for token_symbol, token_transactions in transactions_by_token.items():
-            events = calculate_fifo(
+            events = calculate_with_method(
+                current_user.cost_basis_method,
                 str(current_user.id), token_symbol, token_transactions
             )
             tax_events.extend(events)
@@ -703,9 +707,8 @@ async def generate_pdf_report(
         story.append(Paragraph("Calculation Methodology", heading_style))
         story.append(
             Paragraph(
-                "This report uses the First-In-First-Out (FIFO) method for calculating capital gains and losses. "
-                "FIFO is the default accounting method for most jurisdictions and assumes that the first assets "
-                "acquired are the first ones sold or disposed of.",
+                f"This report uses the {current_user.cost_basis_method.upper().replace('_', ' ')} method for calculating capital gains and losses. "
+                "You can change this in your Settings page.",
                 normal_style,
             )
         )
@@ -910,6 +913,42 @@ async def get_usd_to_inr_exchange_rate() -> Decimal:
     """Get current USD to INR exchange rate via the exchange rate service."""
     from app.services.exchange_rate import get_usd_rate
     return await get_usd_rate("INR")
+
+
+# ── Tax-Loss Harvesting ────────────────────────────────────────────────────
+
+
+@router.get("/tax-loss-harvesting")
+async def tax_loss_harvesting_report(
+    financial_year: Optional[str] = Query(
+        None, description="Financial year in format 'YYYY-YY' (e.g., '2024-25')"
+    ),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Generate tax-loss harvesting report.
+    Identifies opportunities to realize losses to offset gains.
+    Flags wash sale violations.
+    """
+    try:
+        user_fy_start = current_user.financial_year_start or "04-01"
+        if not financial_year:
+            from datetime import datetime
+            from app.routers.reports import calculate_financial_year
+            current_date = datetime.now()
+            financial_year = calculate_financial_year(current_date, user_fy_start)
+
+        analyzer = TaxLossHarvestingReport(str(current_user.id), financial_year)
+        report = await analyzer.generate_report(db)
+
+        return report
+    except Exception as e:
+        logger.error(f"Error generating tax-loss harvesting report: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generating tax-loss harvesting report: {str(e)}",
+        )
 
 
 # ── Global Tax Format Endpoints ────────────────────────────────────────────
